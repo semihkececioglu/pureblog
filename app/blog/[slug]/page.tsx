@@ -5,6 +5,7 @@ import Post from "@/models/Post";
 import { IPost, ICategory } from "@/types";
 import { ViewTracker } from "./view-tracker";
 import { ReactionBar } from "./reaction-bar";
+import { CommentSection } from "./comment-section";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -105,6 +106,7 @@ export default async function PostPage({ params }: PageProps) {
         )}
         <ReactionBar slug={slug} initialReactions={post.reactions} />
       </nav>
+      <CommentSection slug={slug} />
     </article>
   );
 }
