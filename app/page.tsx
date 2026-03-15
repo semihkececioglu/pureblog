@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PostCard } from "@/components/post-card";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
+import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { buildMetadata, siteUrl, siteName } from "@/lib/metadata";
 import { WebsiteJsonLd } from "@/components/json-ld";

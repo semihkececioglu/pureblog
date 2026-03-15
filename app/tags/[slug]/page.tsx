@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
+import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { PostCard } from "@/components/post-card";
 

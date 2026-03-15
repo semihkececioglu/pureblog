@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
+import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
+import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { ViewTracker } from "./view-tracker";
 import { ReactionBar } from "./reaction-bar";

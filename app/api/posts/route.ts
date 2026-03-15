@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
+import "@/models/Category";
 
 export async function GET(): Promise<NextResponse> {
   try {

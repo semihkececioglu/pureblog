@@ -9,6 +9,7 @@ export const metadata: Metadata = buildMetadata({
 });
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
+import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 
 async function getPosts() {
