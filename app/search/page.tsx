@@ -33,7 +33,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         {q && (
           <p className="text-muted-foreground">
             {posts.length} result{posts.length !== 1 ? "s" : ""} for{" "}
-            <span className="text-foreground font-medium">"{q}"</span>
+            <span className="text-foreground font-medium">&quot;{q}&quot;</span>
           </p>
         )}
       </header>
@@ -44,7 +44,9 @@ export default async function SearchPage({ searchParams }: PageProps) {
             Enter a search term to find posts.
           </p>
         ) : posts.length === 0 ? (
-          <p className="text-muted-foreground">No posts found for "{q}".</p>
+          <p className="text-muted-foreground">
+            No posts found for &quot;{q}&quot;.
+          </p>
         ) : (
           posts.map((post) => <PostCard key={String(post._id)} post={post} />)
         )}

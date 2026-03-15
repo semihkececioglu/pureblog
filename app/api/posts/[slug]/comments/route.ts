@@ -26,7 +26,7 @@ export async function GET(
     if (!post) return NextResponse.json({ data: [], error: null });
 
     const comments = await Comment.find({
-      postId: (post as { _id: string })._id,
+      postId: (post as unknown as { _id: string })._id,
       status: "approved",
     })
       .sort({ createdAt: -1 })
@@ -60,7 +60,7 @@ export async function POST(
       );
 
     await Comment.create({
-      postId: (post as { _id: string })._id,
+      postId: (post as unknown as { _id: string })._id,
       name,
       email,
       content,
