@@ -13,7 +13,7 @@ const navLinks = [
 export function Navbar() {
   return (
     <header className="relative border-b border-border">
-      <nav className="relative max-w-3xl mx-auto px-4 h-14 flex items-center justift-between">
+      <nav className="relative max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-serif text-lg font-bold tracking-tight">
           PureBlog
         </Link>
