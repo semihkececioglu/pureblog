@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { connectDB } from "@/lib/db";
 import Comment from "@/models/Comment";
 import { IComment } from "@/types";

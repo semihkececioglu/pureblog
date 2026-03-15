@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { connectDB } from "@/lib/db";
 import Message from "@/models/Message";
 import { IMessage } from "@/types";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { connectDB } from "@/lib/db";
 import Subscriber from "@/models/Subscriber";
 import { ISubscriber } from "@/types";
