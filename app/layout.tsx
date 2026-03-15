@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Lora, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const lora = Lora({
@@ -31,8 +32,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${lora.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
