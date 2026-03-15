@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import { IPost, ICategory } from "@/types";
 import { ViewTracker } from "./view-tracker";
+import { ReactionBar } from "./reaction-bar";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -102,6 +103,7 @@ export default async function PostPage({ params }: PageProps) {
         ) : (
           <div />
         )}
+        <ReactionBar slug={slug} initialReactions={post.reactions} />
       </nav>
     </article>
   );
