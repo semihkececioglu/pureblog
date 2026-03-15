@@ -1,0 +1,33 @@
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/db";
+import Category from "@/models/Category";
+import { auth } from "@/auth";
+import { z } from "zod";
+
+const schema = z.object({
+  name: z.string().min(2),
+  slug: z.string().min(2),
+  description: z.string().optional(),
+});
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ data: null, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const data = schema.parse(body);
+
+    await connectDB();
+
+    const category = await Category.create(data);
+    return NextResponse.json({ data: category, error: null });
+  } catch {
+    return NextResponse.json(
+      { data: null, error: "Failed to create category" },
+      { status: 500 }
+    );
+  }
+}
