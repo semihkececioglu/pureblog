@@ -4,6 +4,7 @@ import { Providers } from "@/components/providers";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { PageTransition } from "@/components/page-transition";
+import { VerticalLines } from "@/components/structural-lines";
 import "./globals.css";
 
 const lora = Lora({
@@ -39,6 +40,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex flex-col">
         <Providers>
+          <VerticalLines />
           <Navbar />
           <main className="flex-1">
             <PageTransition>{children}</PageTransition>

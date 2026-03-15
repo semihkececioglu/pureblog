@@ -1,8 +1,6 @@
 import Link from "next/link";
-
 import { IPost, ICategory } from "@/types";
-import { CornerMark } from "@/components/structural-lines";
-import { AlignVerticalDistributeCenter } from "lucide-react";
+import { CardWithCorners } from "@/components/structural-lines";
 
 interface PostCardProps {
   post: IPost & { category: ICategory };
@@ -10,24 +8,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   return (
-    <article className="relative border border-border p-6 group">
-      <CornerMark />
-      <span
-        className="corner-mark"
-        style={{ top: 0, right: 0, left: "auto" }}
-        aria-hidden="true"
-      />
-      <span
-        className="corner-mark"
-        style={{ bottom: 0, top: "auto", left: 0 }}
-        aria-hidden="true"
-      />
-      <span
-        className="corner-mark"
-        style={{ bottom: 0, top: "auto", right: 0, left: "auto" }}
-        aria-hidden="true"
-      />
-
+    <CardWithCorners className="p-6 group">
       <div className="flex items-center gap-3 mb-3">
         <Link
           href={`/categories/${post.category.slug}`}
@@ -35,7 +16,7 @@ export function PostCard({ post }: PostCardProps) {
         >
           {post.category.name}
         </Link>
-        <span className="text-border">-</span>
+        <span className="text-border">—</span>
         <span className="font-mono text-xs text-muted-foreground">
           {post.readingTime} min read
         </span>
@@ -60,6 +41,6 @@ export function PostCard({ post }: PostCardProps) {
           </Link>
         ))}
       </div>
-    </article>
+    </CardWithCorners>
   );
 }
