@@ -74,8 +74,8 @@ export default async function AdminPostsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-serif text-3xl font-bold tracking-tight">Posts</h1>
-        <Button asChild>
-          <Link href="/admin/posts/new">
+        <Button>
+          <Link href="/admin/posts/new" className="flex items-center gap-2">
             <Plus width={16} height={16} />
             New Post
           </Link>

@@ -207,13 +207,8 @@ export function PostForm({ initialData }: PostFormProps) {
               className="hidden"
               onChange={handleCoverUpload}
             />
-            <Button
-              type="button"
-              variant="outline"
-              disabled={uploading}
-              asChild
-            >
-              <span>{uploading ? "Uploading..." : "Upload"}</span>
+            <Button type="button" variant="outline" disabled={uploading}>
+              {uploading ? "Uploading..." : "Upload"}
             </Button>
           </label>
         </div>
