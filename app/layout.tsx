@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Lora, DM_Sans, JetBrains_Mono, Geist } from "next/font/google";
+import { Lora, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const lora = Lora({
   subsets: ["latin"],
@@ -31,12 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body
-        className={`${lora.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
-      >
-        {children}
-      </body>
+    <html
+      lang="en"
+      className={`${lora.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+    >
+      <body>{children}</body>
     </html>
   );
 }
