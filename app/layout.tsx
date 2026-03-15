@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Lora, DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 import "./globals.css";
 
 const lora = Lora({
@@ -34,8 +36,12 @@ export default function RootLayout({
       className={`${lora.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body>
-        <Providers>{children}</Providers>
+      <body className="min-h-screen flex flex-col">
+        <Providers>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
