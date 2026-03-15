@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { connectDB } from "@/lib/db";
@@ -6,9 +7,46 @@ import { IPost, ICategory } from "@/types";
 import { ViewTracker } from "./view-tracker";
 import { ReactionBar } from "./reaction-bar";
 import { CommentSection } from "./comment-section";
+import { siteUrl, siteName } from "@/lib/metadata";
+import { ArticleJsonLd } from "@/components/json-ld";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  await connectDB();
+  const post = await Post.findOne({ slug, status: "published" })
+    .populate("category", "name")
+    .lean() as unknown as (IPost & { category: ICategory }) | null;
+
+  if (!post) return {};
+
+  const url = `${siteUrl}/blog/${post.slug}`;
+  const ogImage = post.coverImage ?? `${siteUrl}/api/og?title=${encodeURIComponent(post.title)}`;
+
+  return {
+    title: `${post.title} | ${siteName}`,
+    description: post.excerpt,
+    alternates: { canonical: url },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url,
+      type: "article",
+      publishedTime: post.publishedAt?.toISOString(),
+      modifiedTime: post.updatedAt?.toISOString(),
+      authors: [siteName],
+      images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: [ogImage],
+    },
+  };
 }
 
 async function getPost(slug: string) {
@@ -43,6 +81,14 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <article className="max-w-2xl mx-auto px-4 py-12">
+      <ArticleJsonLd
+        title={post.title}
+        description={post.excerpt}
+        publishedAt={post.publishedAt!}
+        updatedAt={post.updatedAt}
+        slug={post.slug}
+        coverImage={post.coverImage}
+      />
       <ViewTracker slug={slug} />
 
       <header className="mb-10">

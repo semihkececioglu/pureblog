@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { PostCard } from "@/components/post-card";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Blog",
+  description: "All posts, sorted by date.",
+  path: "/blog",
+});
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import { IPost, ICategory } from "@/types";

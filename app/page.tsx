@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import { PostCard } from "@/components/post-card";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import { IPost, ICategory } from "@/types";
+import { buildMetadata, siteUrl, siteName } from "@/lib/metadata";
+import { WebsiteJsonLd } from "@/components/json-ld";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Home",
+  description: "Thoughts on technology, design, and everything in between.",
+});
 
 async function getPosts() {
   await connectDB();
@@ -18,6 +26,7 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <WebsiteJsonLd siteUrl={siteUrl} siteName={siteName} />
       <section className="mb-16">
         <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight mb-4">
           Welcome to PureBlog

@@ -1,3 +1,12 @@
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = buildMetadata({
+  title: "About",
+  description: "Learn more about PureBlog.",
+  path: "/about",
+});
+
 export default function AboutPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
