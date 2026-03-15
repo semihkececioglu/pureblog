@@ -1,4 +1,20 @@
-export default function BlogPage() {
+import { PostCard } from "@/components/post-card";
+import { connectDB } from "@/lib/db";
+import Post from "@/models/Post";
+import { IPost, ICategory } from "@/types";
+
+async function getPosts() {
+  await connectDB();
+  const posts = await Post.find({ status: "published" })
+    .populate("category", "name slug")
+    .sort({ publishedAt: -1 })
+    .lean();
+  return posts as unknown as (IPost & { category: ICategory })[];
+}
+
+export default async function BlogPage() {
+  const posts = await getPosts();
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <section className="mb-12">
@@ -8,8 +24,12 @@ export default function BlogPage() {
         <p className="text-muted-foreground">All posts, sorted by date.</p>
       </section>
 
-      <div className="flex flex-col gap-8">
-        <p className="text-muted-foreground">No posts yet.</p>
+      <div className="flex flex-col gap-6">
+        {posts.length === 0 ? (
+          <p className="text-muted-foreground">No posts yet.</p>
+        ) : (
+          posts.map((post) => <PostCard key={String(post._id)} post={post} />)
+        )}
       </div>
     </div>
   );
