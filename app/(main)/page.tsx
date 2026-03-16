@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PostCard, FeaturedPostCard } from "@/components/post-card";
+import { NewsletterSection } from "@/components/newsletter-section";
+import { ContactSection } from "@/components/contact-section";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import "@/models/Category";
@@ -30,6 +32,7 @@ export default async function HomePage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
       <WebsiteJsonLd siteUrl={siteUrl} siteName={siteName} />
+
       <section className="mb-16">
         <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight mb-4">
           Welcome to PureBlog
@@ -56,6 +59,9 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+
+      <NewsletterSection />
+      <ContactSection />
     </div>
   );
 }

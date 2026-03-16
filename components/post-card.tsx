@@ -42,7 +42,7 @@ function CoverImage({
 
 export function FeaturedPostCard({ post }: PostCardProps) {
   return (
-    <CardWithCorners className="group cursor-pointer hover:bg-muted/20 transition-colors duration-200">
+    <CardWithCorners className="group cursor-pointer hover:bg-muted/40 transition-colors duration-200">
       <Link
         href={`/blog/${post.slug}`}
         className="absolute inset-0 z-10"
@@ -58,11 +58,11 @@ export function FeaturedPostCard({ post }: PostCardProps) {
           >
             {post.category.name}
           </Link>
-          <span className="text-border">—</span>
+          <span className="text-border">·</span>
           <span className="font-mono text-xs text-muted-foreground">
             {post.readingTime} min read
           </span>
-          <span className="font-mono text-xs bg-foreground text-background px-2 py-0.5 ml-auto">
+          <span className="font-mono text-xs bg-foreground text-background px-2.5 py-0.5 rounded-full ml-auto">
             FEATURED
           </span>
         </div>
@@ -80,7 +80,7 @@ export function FeaturedPostCard({ post }: PostCardProps) {
             <Link
               key={tag}
               href={`/tags/${tag}`}
-              className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors relative z-20"
+              className="font-mono text-xs px-2.5 py-1 rounded-full bg-muted hover:bg-foreground hover:text-background transition-colors relative z-20"
             >
               #{tag}
             </Link>
@@ -93,7 +93,7 @@ export function FeaturedPostCard({ post }: PostCardProps) {
 
 export function PostCard({ post }: PostCardProps) {
   return (
-    <CardWithCorners className="group cursor-pointer hover:bg-muted/20 transition-colors duration-200 flex flex-col">
+    <CardWithCorners className="group cursor-pointer hover:bg-muted/40 transition-colors duration-200 flex flex-col">
       <Link
         href={`/blog/${post.slug}`}
         className="absolute inset-0 z-10"
@@ -102,14 +102,14 @@ export function PostCard({ post }: PostCardProps) {
       />
       <CoverImage src={post.coverImage} alt={post.title} className="h-44" />
       <div className="p-6 flex flex-col flex-1">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           <Link
             href={`/categories/${post.category.slug}`}
             className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest relative z-20"
           >
             {post.category.name}
           </Link>
-          <span className="text-border">—</span>
+          <span className="text-border">·</span>
           <span className="font-mono text-xs text-muted-foreground">
             {post.readingTime} min read
           </span>
@@ -128,7 +128,7 @@ export function PostCard({ post }: PostCardProps) {
             <Link
               key={tag}
               href={`/tags/${tag}`}
-              className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors relative z-20"
+              className="font-mono text-xs px-2.5 py-1 rounded-full bg-muted hover:bg-foreground hover:text-background transition-colors relative z-20"
             >
               #{tag}
             </Link>

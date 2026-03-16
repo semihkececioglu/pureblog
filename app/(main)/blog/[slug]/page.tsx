@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import "@/models/Category";
@@ -13,6 +14,16 @@ import { ArticleJsonLd } from "@/components/json-ld";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+function relativeDate(date: Date): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -92,19 +103,27 @@ export default async function PostPage({ params }: PageProps) {
       />
       <ViewTracker slug={slug} />
 
-      <header className="mb-10">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-            {post.category.name}
-          </span>
-          <span className="text-border">—</span>
-          <span className="font-mono text-xs text-muted-foreground">
-            {post.readingTime} min read
-          </span>
-          <span className="text-border">—</span>
-          <span className="font-mono text-xs text-muted-foreground">
-            {post.views} views
-          </span>
+      <header className="mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 rounded-xl overflow-hidden border border-border mb-6">
+          <Link
+            href={`/categories/${post.category.slug}`}
+            className="flex flex-col gap-1 px-4 py-3 bg-muted/40 hover:bg-muted transition-colors border-r border-border"
+          >
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Category</span>
+            <span className="text-sm font-medium">{post.category.name}</span>
+          </Link>
+          <div className="flex flex-col gap-1 px-4 py-3 bg-muted/40 border-r border-border md:border-r">
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Reading Time</span>
+            <span className="text-sm font-medium">{post.readingTime} min</span>
+          </div>
+          <div className="flex flex-col gap-1 px-4 py-3 bg-muted/40 border-t border-r border-border md:border-t-0">
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Views</span>
+            <span className="text-sm font-medium">{post.views.toLocaleString()}</span>
+          </div>
+          <div className="flex flex-col gap-1 px-4 py-3 bg-muted/40 border-t border-border md:border-t-0">
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Published</span>
+            <span className="text-sm font-medium">{relativeDate(post.publishedAt!)}</span>
+          </div>
         </div>
         <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight mb-4">
           {post.title}
@@ -114,45 +133,74 @@ export default async function PostPage({ params }: PageProps) {
         </p>
       </header>
 
+      {post.coverImage && (
+        <div className="relative w-full aspect-video mb-10 overflow-hidden rounded-xl border border-border">
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+      )}
+
       <div
         className="prose prose-neutral dark:prose-invert max-w-none"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
 
-      <nav className="mt-16 pt-8 border-t border-border flex justify-between gap-4">
-        {prev ? (
-          <Link
-            href={`/blog/${(prev as IPost).slug}`}
-            className="group flex flex-col gap-1 max-w-xs"
-          >
-            <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-              Previous
-            </span>
-            <span className="text-sm font-medium group-hover:underline underline-offset-4">
-              {(prev as IPost).title}
-            </span>
-          </Link>
-        ) : (
-          <div />
-        )}
+      {post.tags && post.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-10 pt-8 border-t border-border">
+          {post.tags.map((tag) => (
+            <Link
+              key={tag}
+              href={`/tags/${tag}`}
+              className="font-mono text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-foreground hover:text-background transition-colors"
+            >
+              #{tag}
+            </Link>
+          ))}
+        </div>
+      )}
 
-        {next ? (
-          <Link
-            href={`/blog/${(next as IPost).slug}`}
-            className="group flex flex-col gap-1 items-end max-w-xs"
-          >
-            <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-              Next
-            </span>
-            <span className="text-sm font-medium group-hover:underline underline-offset-4 text-right">
-              {(next as IPost).title}
-            </span>
-          </Link>
-        ) : (
-          <div />
-        )}
-        <ReactionBar slug={slug} initialReactions={post.reactions} />
-      </nav>
+      <ReactionBar slug={slug} initialReactions={post.reactions} />
+
+      {(prev || next) && (
+        <nav className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {prev ? (
+            <Link
+              href={`/blog/${(prev as IPost).slug}`}
+              className="flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors"
+            >
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
+                ← Previous
+              </span>
+              <span className="text-sm font-medium leading-snug">
+                {(prev as IPost).title}
+              </span>
+            </Link>
+          ) : (
+            <div />
+          )}
+          {next ? (
+            <Link
+              href={`/blog/${(next as IPost).slug}`}
+              className="flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors text-right items-end"
+            >
+              <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
+                Next →
+              </span>
+              <span className="text-sm font-medium leading-snug">
+                {(next as IPost).title}
+              </span>
+            </Link>
+          ) : (
+            <div />
+          )}
+        </nav>
+      )}
+
       <CommentSection slug={slug} />
     </article>
   );

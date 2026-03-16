@@ -25,6 +25,16 @@ interface CommentSectionProps {
   slug: string;
 }
 
+function relativeDate(date: Date | string): string {
+  const diff = Date.now() - new Date(date).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days}d ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
 export function CommentSection({ slug }: CommentSectionProps) {
   const [comments, setComments] = useState<IComment[]>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -54,36 +64,55 @@ export function CommentSection({ slug }: CommentSectionProps) {
 
   return (
     <section className="mt-16 pt-8 border-t border-border">
-      <h2 className="font-serif text-2xl font-bold mb-8">Comments</h2>
+      <div className="mb-8">
+        <h2 className="font-serif text-2xl font-bold">Comments</h2>
+        {comments.length > 0 && (
+          <p className="font-mono text-xs text-muted-foreground mt-1">
+            {comments.length} comment{comments.length !== 1 ? "s" : ""}
+          </p>
+        )}
+      </div>
 
       {comments.length > 0 && (
-        <div className="flex flex-col gap-6 mb-12">
+        <div className="flex flex-col mb-12">
           {comments.map((comment) => (
-            <div key={String(comment._id)} className="border border-border p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium">{comment.name}</span>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {new Date(comment.createdAt).toLocaleDateString()}
-                </span>
+            <div
+              key={String(comment._id)}
+              className="flex gap-4 py-5 border-b border-border last:border-0"
+            >
+              <div className="w-9 h-9 shrink-0 rounded-full bg-muted flex items-center justify-center font-mono text-xs font-bold select-none">
+                {comment.name.charAt(0).toUpperCase()}
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {comment.content}
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-sm font-medium">{comment.name}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {relativeDate(comment.createdAt)}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {comment.content}
+                </p>
+              </div>
             </div>
           ))}
         </div>
       )}
 
       {submitted ? (
-        <p className="text-sm text-muted-foreground">
-          Your comment has been submitted and is awaiting approval.
-        </p>
+        <div className="rounded-xl p-4 bg-muted">
+          <p className="text-sm">Comment submitted — awaiting moderation.</p>
+        </div>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" {...register("name")} />
+              <Input
+                id="name"
+                placeholder="Your name"
+                {...register("name")}
+              />
               {errors.name && (
                 <p className="text-xs text-destructive">
                   {errors.name.message}
@@ -92,7 +121,12 @@ export function CommentSection({ slug }: CommentSectionProps) {
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" {...register("email")} />
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                {...register("email")}
+              />
               {errors.email && (
                 <p className="text-xs text-destructive">
                   {errors.email.message}
@@ -102,7 +136,12 @@ export function CommentSection({ slug }: CommentSectionProps) {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="content">Comment</Label>
-            <Textarea id="content" rows={4} {...register("content")} />
+            <Textarea
+              id="content"
+              rows={4}
+              placeholder="Share your thoughts..."
+              {...register("content")}
+            />
             {errors.content && (
               <p className="text-xs text-destructive">
                 {errors.content.message}

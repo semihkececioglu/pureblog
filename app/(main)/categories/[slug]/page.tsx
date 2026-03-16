@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
@@ -39,6 +40,16 @@ export default async function CategoryPage({ params }: PageProps) {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Link
+        href="/categories"
+        className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground hover:text-foreground transition-colors mb-10 group"
+      >
+        <span className="transition-transform duration-200 group-hover:-translate-x-1 inline-block">
+          ←
+        </span>
+        Categories
+      </Link>
+
       <header className="mb-12">
         <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">
           Category
@@ -46,14 +57,19 @@ export default async function CategoryPage({ params }: PageProps) {
         <h1 className="font-serif text-4xl font-bold tracking-tight mb-3">
           {category.name}
         </h1>
-        {category.description && (
-          <p className="text-muted-foreground">{category.description}</p>
-        )}
+        <div className="flex items-center gap-3">
+          {category.description && (
+            <p className="text-muted-foreground">{category.description}</p>
+          )}
+          <span className="font-mono text-xs text-muted-foreground shrink-0">
+            {posts.length} {posts.length === 1 ? "post" : "posts"}
+          </span>
+        </div>
       </header>
 
-      <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {posts.length === 0 ? (
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground col-span-2">
             No posts in this category yet.
           </p>
         ) : (
