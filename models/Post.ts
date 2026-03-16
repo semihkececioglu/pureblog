@@ -8,6 +8,7 @@ const PostSchema = new Schema<IPost>(
     content: { type: String, required: true },
     excerpt: { type: String, required: true, maxlength: 160 },
     coverImage: { type: String },
+    featured: { type: Boolean, default: false },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     tags: [{ type: String }],
     status: { type: String, enum: ["draft", "published"], default: "draft" },

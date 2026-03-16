@@ -12,6 +12,7 @@ const schema = z.object({
   category: z.string(),
   tags: z.array(z.string()),
   coverImage: z.string().optional(),
+  featured: z.boolean().optional(),
   status: z.enum(["draft", "published"]),
 });
 

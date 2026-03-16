@@ -1,3 +1,12 @@
+const ARM = 10; // px — her yönde kol uzunluğu
+
+const cornerStyles: Record<string, React.CSSProperties> = {
+  "top-left":     { top: "-0.5px",    left: "-0.5px",   transform: "translate(-50%, -50%)" },
+  "top-right":    { top: "-0.5px",    right: "-0.5px",  transform: "translate(50%, -50%)" },
+  "bottom-left":  { bottom: "-0.5px", left: "-0.5px",   transform: "translate(-50%, 50%)" },
+  "bottom-right": { bottom: "-0.5px", right: "-0.5px",  transform: "translate(50%, 50%)" },
+};
+
 export function VerticalLines() {
   return (
     <>
@@ -20,22 +29,21 @@ export function CornerMark({
 }: {
   position: "top-left" | "top-right" | "bottom-left" | "bottom-right";
 }) {
-  const positionStyles = {
-    "top-left": { top: -1, left: -1 },
-    "top-right": { top: -1, right: -1 },
-    "bottom-left": { bottom: -1, left: -1 },
-    "bottom-right": { bottom: -1, right: -1 },
-  };
-
+  const size = ARM * 2;
   return (
-    <span
-      className="absolute w-3 h-3 pointer-events-none"
-      style={positionStyles[position]}
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="absolute pointer-events-none text-muted-foreground/60"
+      style={cornerStyles[position]}
       aria-hidden="true"
     >
-      <span className="absolute left-1/2 top-0 bottom-0 w-px bg-muted-foreground opacity-60" />
-      <span className="absolute top-1/2 left-0 right-0 h-px bg-muted-foreground opacity-60" />
-    </span>
+      {/* dikey kol */}
+      <line x1={ARM} y1={0} x2={ARM} y2={size} stroke="currentColor" strokeWidth={1} />
+      {/* yatay kol */}
+      <line x1={0} y1={ARM} x2={size} y2={ARM} stroke="currentColor" strokeWidth={1} />
+    </svg>
   );
 }
 

@@ -21,6 +21,7 @@ const schema = z.object({
   tags: z.string(),
   coverImage: z.string().optional(),
   published: z.boolean(),
+  featured: z.boolean(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -35,6 +36,7 @@ interface PostFormProps {
     category: string;
     tags: string[];
     coverImage?: string;
+    featured?: boolean;
     status: "draft" | "published";
   };
 }
@@ -61,6 +63,7 @@ export function PostForm({ initialData }: PostFormProps) {
       tags: initialData?.tags.join(", ") ?? "",
       coverImage: initialData?.coverImage ?? "",
       published: initialData?.status === "published",
+      featured: initialData?.featured ?? false,
     },
   });
 
@@ -105,6 +108,7 @@ export function PostForm({ initialData }: PostFormProps) {
         .map((t) => t.trim())
         .filter(Boolean),
       coverImage: data.coverImage,
+      featured: data.featured,
       status: data.published ? "published" : "draft",
     };
 
@@ -228,6 +232,15 @@ export function PostForm({ initialData }: PostFormProps) {
           onCheckedChange={(val) => setValue("published", val)}
         />
         <Label htmlFor="published">Publish immediately</Label>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Switch
+          id="featured"
+          checked={watch("featured")}
+          onCheckedChange={(val) => setValue("featured", val)}
+        />
+        <Label htmlFor="featured">Featured post</Label>
       </div>
 
       <div className="flex items-center gap-3">

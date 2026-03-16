@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
-import { Lora, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Prata, DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
-import { PageTransition } from "@/components/page-transition";
-import { VerticalLines } from "@/components/structural-lines";
 import "./globals.css";
 
-const lora = Lora({
+const prata = Prata({
   subsets: ["latin"],
+  weight: "400",
   variable: "--font-lora",
 });
 
@@ -35,18 +32,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${lora.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
+      className={`${prata.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col">
-        <Providers>
-          <VerticalLines />
-          <Navbar />
-          <main className="flex-1">
-            <PageTransition>{children}</PageTransition>
-          </main>
-          <Footer />
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

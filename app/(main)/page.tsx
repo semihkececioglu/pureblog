@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PostCard } from "@/components/post-card";
+import { PostCard, FeaturedPostCard } from "@/components/post-card";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import "@/models/Category";
@@ -16,14 +16,16 @@ async function getPosts() {
   await connectDB();
   const posts = await Post.find({ status: "published" })
     .populate("category", "name slug")
-    .sort({ publishedAt: -1 })
-    .limit(6)
+    .sort({ featured: -1, publishedAt: -1 })
+    .limit(7)
     .lean();
   return posts as unknown as (IPost & { category: ICategory })[];
 }
 
 export default async function HomePage() {
   const posts = await getPosts();
+  const featuredPost = posts.find((p) => p.featured) ?? posts[0] ?? null;
+  const otherPosts = posts.filter((p) => p !== featuredPost);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
@@ -39,13 +41,20 @@ export default async function HomePage() {
 
       <section>
         <h2 className="font-serif text-2xl font-bold mb-8">Recent Posts</h2>
-        <div className="flex flex-col gap-6">
-          {posts.length === 0 ? (
-            <p className="text-muted-foreground">No posts yet.</p>
-          ) : (
-            posts.map((post) => <PostCard key={String(post._id)} post={post} />)
-          )}
-        </div>
+        {posts.length === 0 ? (
+          <p className="text-muted-foreground">No posts yet.</p>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {featuredPost && <FeaturedPostCard post={featuredPost} />}
+            {otherPosts.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {otherPosts.map((post) => (
+                  <PostCard key={String(post._id)} post={post} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

@@ -7,6 +7,7 @@ export interface IPost {
   content: string;
   excerpt: string;
   coverImage?: string;
+  featured?: boolean;
   category: Types.ObjectId;
   tags: string[];
   status: "draft" | "published";

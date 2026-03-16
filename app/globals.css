@@ -129,48 +129,5 @@
     font-family: var(--font-sans), sans-serif;
   }
 
-  .v-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: var(--border);
-    opacity: 0.6;
-  }
 
-  .h-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--border);
-    opacity: 0.6;
-  }
-
-  .corner-mark {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    transform: translate(-50%, -50%);
-  }
-
-  .corner-mark::before {
-    content: "";
-    position: absolute;
-    width: 1px;
-    height: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--muted-foreground);
-  }
-
-  .corner-mark::after {
-    content: "";
-    position: absolute;
-    height: 1px;
-    width: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--muted-foreground);
-  }
 }
