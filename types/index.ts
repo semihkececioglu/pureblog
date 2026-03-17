@@ -11,12 +11,9 @@ export interface IPost {
   category: Types.ObjectId;
   tags: string[];
   status: "draft" | "published";
-  readingTime: number;
   views: number;
   reactions: {
-    like: number;
     heart: number;
-    fire: number;
   };
   publishedAt?: Date;
   createdAt: Date;
