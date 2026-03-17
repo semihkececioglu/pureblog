@@ -1,4 +1,4 @@
-const ARM = 10; // px — her yönde kol uzunluğu
+const ARM = 6; // px — her yönde kol uzunluğu
 
 const cornerStyles: Record<string, React.CSSProperties> = {
   "top-left":     { top: "-0.5px",    left: "-0.5px",   transform: "translate(-50%, -50%)" },
@@ -11,12 +11,12 @@ export function VerticalLines() {
   return (
     <>
       <span
-        className="fixed top-0 bottom-0 w-px bg-border opacity-40 pointer-events-none z-10"
+        className="hidden md:block fixed top-0 bottom-0 w-px bg-border opacity-40 pointer-events-none z-10"
         style={{ left: "max(1rem, calc(50% - 24rem))" }}
         aria-hidden="true"
       />
       <span
-        className="fixed top-0 bottom-0 w-px bg-border opacity-40 pointer-events-none z-10"
+        className="hidden md:block fixed top-0 bottom-0 w-px bg-border opacity-40 pointer-events-none z-10"
         style={{ right: "max(1rem, calc(50% - 24rem))" }}
         aria-hidden="true"
       />
