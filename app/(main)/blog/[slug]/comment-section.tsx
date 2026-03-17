@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { IComment } from "@/types";
+import { StripedPattern } from "@/components/magicui/striped-pattern";
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -63,7 +64,16 @@ export function CommentSection({ slug }: CommentSectionProps) {
   }
 
   return (
-    <section className="mt-16 pt-8 border-t border-border">
+    <section className="mt-16">
+      <div
+        className="relative h-2 overflow-hidden border-y border-border mb-8"
+        style={{
+          width: "min(100vw, 48rem)",
+          marginLeft: "calc((min(100vw, 48rem) - min(100vw, 42rem)) * -0.5 - 1rem)",
+        }}
+      >
+        <StripedPattern direction="right" className="text-border" />
+      </div>
       <div className="mb-8">
         <h2 className="font-serif text-2xl font-bold">Comments</h2>
         {comments.length > 0 && (

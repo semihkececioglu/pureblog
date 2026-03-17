@@ -2,41 +2,51 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
-import { ViewTracker } from "./view-tracker";
+import { ViewCounter } from "./view-tracker";
 import { ReactionBar } from "./reaction-bar";
+import { StripedPattern } from "@/components/magicui/striped-pattern";
 import { CommentSection } from "./comment-section";
 import { siteUrl, siteName } from "@/lib/metadata";
 import { ArticleJsonLd } from "@/components/json-ld";
+import { TableOfContents } from "@/components/table-of-contents";
+import { addHeadingIds, extractHeadings } from "@/lib/toc";
+import { RelatedPosts } from "@/components/related-posts";
+import { BackToTop } from "@/components/back-to-top";
+import { ShareButtons } from "@/components/share-buttons";
+import { calcReadingTime } from "@/lib/reading-time";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-function relativeDate(date: Date): string {
-  const diff = Date.now() - new Date(date).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 30) return `${days}d ago`;
-  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
-  return `${Math.floor(days / 365)}y ago`;
+function formatDate(date: Date): string {
+  return new Date(date).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { slug } = await params;
   await connectDB();
-  const post = await Post.findOne({ slug, status: "published" })
+  const post = (await Post.findOne({ slug, status: "published" })
     .populate("category", "name")
-    .lean() as unknown as (IPost & { category: ICategory }) | null;
+    .lean()) as unknown as (IPost & { category: ICategory }) | null;
 
   if (!post) return {};
 
   const url = `${siteUrl}/blog/${post.slug}`;
-  const ogImage = post.coverImage ?? `${siteUrl}/api/og?title=${encodeURIComponent(post.title)}`;
+  const ogImage =
+    post.coverImage ??
+    `${siteUrl}/api/og?title=${encodeURIComponent(post.title)}`;
 
   return {
     title: `${post.title} | ${siteName}`,
@@ -83,6 +93,21 @@ async function getAdjacentPosts(publishedAt: Date) {
   return { prev, next };
 }
 
+async function getRelatedPosts(
+  categoryId: import("mongoose").Types.ObjectId,
+  currentSlug: string,
+) {
+  return Post.find({
+    status: "published",
+    category: categoryId,
+    slug: { $ne: currentSlug },
+  })
+    .sort({ publishedAt: -1 })
+    .limit(3)
+    .select("title slug excerpt coverImage content publishedAt")
+    .lean() as unknown as IPost[];
+}
+
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = await getPost(slug);
@@ -90,118 +115,173 @@ export default async function PostPage({ params }: PageProps) {
   if (!post) notFound();
 
   const { prev, next } = await getAdjacentPosts(post.publishedAt!);
+  const related = await getRelatedPosts(post.category._id, post.slug);
+  const contentWithIds = addHeadingIds(post.content);
+  const headings = extractHeadings(contentWithIds);
+  const readingTime = calcReadingTime(post.content);
+  const postUrl = `${siteUrl}/blog/${post.slug}`;
 
   return (
-    <article className="max-w-2xl mx-auto px-4 py-12">
-      <ArticleJsonLd
+    <>
+      <ShareButtons
         title={post.title}
-        description={post.excerpt}
-        publishedAt={post.publishedAt!}
-        updatedAt={post.updatedAt}
-        slug={post.slug}
-        coverImage={post.coverImage}
+        url={postUrl}
+        prevSlug={prev ? (prev as IPost).slug : undefined}
+        nextSlug={next ? (next as IPost).slug : undefined}
       />
-      <ViewTracker slug={slug} />
+      <article className="max-w-2xl mx-auto px-4 pt-6 pb-12">
+        <ArticleJsonLd
+          title={post.title}
+          description={post.excerpt}
+          publishedAt={post.publishedAt!}
+          updatedAt={post.updatedAt}
+          slug={post.slug}
+          coverImage={post.coverImage}
+        />
 
-      <header className="mb-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 rounded-xl overflow-hidden border border-border mb-6">
+        <header className="mb-8">
+          <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-4">
+            {post.title}
+          </h1>
+          <p className="text-muted-foreground text-lg leading-snug">
+            {post.excerpt}
+          </p>
+        </header>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 rounded-xl overflow-hidden border border-border mb-8">
           <Link
             href={`/categories/${post.category.slug}`}
             className="flex flex-col gap-1 px-4 py-3 bg-muted/40 hover:bg-muted transition-colors border-r border-border"
           >
-            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Category</span>
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+              Category
+            </span>
             <span className="text-sm font-medium">{post.category.name}</span>
           </Link>
           <div className="flex flex-col gap-1 px-4 py-3 bg-muted/40 border-r border-border md:border-r">
-            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Reading Time</span>
-            <span className="text-sm font-medium">{post.readingTime} min</span>
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+              Reading Time
+            </span>
+            <span className="text-sm font-medium">{readingTime} min</span>
           </div>
           <div className="flex flex-col gap-1 px-4 py-3 bg-muted/40 border-t border-r border-border md:border-t-0">
-            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Views</span>
-            <span className="text-sm font-medium">{post.views.toLocaleString()}</span>
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+              Views
+            </span>
+            <ViewCounter slug={slug} initialViews={post.views} />
           </div>
           <div className="flex flex-col gap-1 px-4 py-3 bg-muted/40 border-t border-border md:border-t-0">
-            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Published</span>
-            <span className="text-sm font-medium">{relativeDate(post.publishedAt!)}</span>
+            <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+              Published
+            </span>
+            <span className="text-sm font-medium">
+              {formatDate(post.publishedAt!)}
+            </span>
           </div>
         </div>
-        <h1 className="font-serif text-3xl md:text-4xl font-bold tracking-tight mb-4">
-          {post.title}
-        </h1>
-        <p className="text-muted-foreground text-lg leading-relaxed">
-          {post.excerpt}
-        </p>
-      </header>
 
-      {post.coverImage && (
-        <div className="relative w-full aspect-video mb-10 overflow-hidden rounded-xl border border-border">
-          <Image
-            src={post.coverImage}
-            alt={post.title}
-            fill
-            className="object-cover"
-            priority
-          />
+        {post.coverImage && (
+          <div className="relative w-full aspect-video mb-8 overflow-hidden rounded-xl border border-border">
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        )}
+
+        {headings.length > 0 && <TableOfContents headings={headings} />}
+
+        <div
+          className="prose prose-neutral dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: contentWithIds }}
+        />
+
+        <div className="mt-10 mb-4">
+          <ReactionBar slug={slug} initialReactions={post.reactions} />
         </div>
-      )}
 
-      <div
-        className="prose prose-neutral dark:prose-invert max-w-none"
-        dangerouslySetInnerHTML={{ __html: post.content }}
-      />
-
-      {post.tags && post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-10 pt-8 border-t border-border">
-          {post.tags.map((tag) => (
-            <Link
-              key={tag}
-              href={`/tags/${tag}`}
-              className="font-mono text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-foreground hover:text-background transition-colors"
-            >
-              #{tag}
-            </Link>
-          ))}
+        <div
+          className="relative h-2 overflow-hidden border-y border-border mb-6"
+          style={{
+            width: "min(100vw, 48rem)",
+            marginLeft:
+              "calc((min(100vw, 48rem) - min(100vw, 42rem)) * -0.5 - 1rem)",
+          }}
+        >
+          <StripedPattern direction="right" className="text-border" />
         </div>
-      )}
 
-      <ReactionBar slug={slug} initialReactions={post.reactions} />
-
-      {(prev || next) && (
-        <nav className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {prev ? (
-            <Link
-              href={`/blog/${(prev as IPost).slug}`}
-              className="flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors"
+        {post.tags && post.tags.length > 0 && (
+          <>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {post.tags.map((tag) => (
+                <Link
+                  key={tag}
+                  href={`/tags/${tag}`}
+                  className="font-mono text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-foreground hover:text-background transition-colors"
+                >
+                  #{tag}
+                </Link>
+              ))}
+            </div>
+            <div
+              className="relative h-2 overflow-hidden border-y border-border mb-6"
+              style={{
+                width: "min(100vw, 48rem)",
+                marginLeft:
+                  "calc((min(100vw, 48rem) - min(100vw, 42rem)) * -0.5 - 1rem)",
+              }}
             >
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-                ← Previous
-              </span>
-              <span className="text-sm font-medium leading-snug">
-                {(prev as IPost).title}
-              </span>
-            </Link>
-          ) : (
-            <div />
-          )}
-          {next ? (
-            <Link
-              href={`/blog/${(next as IPost).slug}`}
-              className="flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors text-right items-end"
-            >
-              <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
-                Next →
-              </span>
-              <span className="text-sm font-medium leading-snug">
-                {(next as IPost).title}
-              </span>
-            </Link>
-          ) : (
-            <div />
-          )}
-        </nav>
-      )}
+              <StripedPattern direction="right" className="text-border" />
+            </div>
+          </>
+        )}
 
-      <CommentSection slug={slug} />
-    </article>
+        {(prev || next) && (
+          <nav className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {prev ? (
+              <Link
+                href={`/blog/${(prev as IPost).slug}`}
+                className="group flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors"
+              >
+                <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                  <ArrowLeft className="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-1" />{" "}
+                  Previous
+                </span>
+                <span className="text-sm font-medium leading-snug">
+                  {(prev as IPost).title}
+                </span>
+              </Link>
+            ) : (
+              <div />
+            )}
+            {next ? (
+              <Link
+                href={`/blog/${(next as IPost).slug}`}
+                className="group flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors text-right items-end"
+              >
+                <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                  Next{" "}
+                  <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-1" />
+                </span>
+                <span className="text-sm font-medium leading-snug">
+                  {(next as IPost).title}
+                </span>
+              </Link>
+            ) : (
+              <div />
+            )}
+          </nav>
+        )}
+
+        {related.length > 0 && <RelatedPosts posts={related} />}
+
+        <CommentSection slug={slug} />
+        <BackToTop />
+      </article>
+    </>
   );
 }
