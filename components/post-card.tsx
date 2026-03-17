@@ -52,7 +52,7 @@ export function FeaturedPostCard({ post }: PostCardProps) {
         tabIndex={-1}
       />
       {post.coverImage ? (
-        <div className="relative h-64 md:h-72 overflow-hidden">
+        <div className="relative h-80 md:h-96 overflow-hidden">
           <Image
             src={post.coverImage}
             alt={post.title}
@@ -62,7 +62,7 @@ export function FeaturedPostCard({ post }: PostCardProps) {
           />
         </div>
       ) : (
-        <div className="h-64 md:h-72 bg-muted flex items-center justify-center">
+        <div className="h-80 md:h-96 bg-muted flex items-center justify-center">
           <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest opacity-40 select-none">
             no image
           </span>
