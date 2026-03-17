@@ -57,7 +57,7 @@ function HeartIcon({ fillLevel }: { fillLevel: 0 | 1 | 2 | 3 }) {
 
 interface ReactionBarProps {
   slug: string;
-  initialReactions: { like: number; heart: number; fire: number };
+  initialReactions: { heart: number; like?: number; fire?: number };
 }
 
 export function ReactionBar({ slug, initialReactions }: ReactionBarProps) {
