@@ -22,7 +22,7 @@ function formatDate(date?: Date | string) {
 function CoverImage({ src, alt }: { src?: string; alt: string }) {
   if (src) {
     return (
-      <div className="relative h-40 overflow-hidden">
+      <div className="relative h-56 overflow-hidden">
         <Image
           src={src}
           alt={alt}
@@ -34,7 +34,7 @@ function CoverImage({ src, alt }: { src?: string; alt: string }) {
     );
   }
   return (
-    <div className="h-40 bg-muted flex items-center justify-center">
+    <div className="h-56 bg-muted flex items-center justify-center">
       <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest opacity-40 select-none">
         no image
       </span>
