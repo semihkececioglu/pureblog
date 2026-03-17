@@ -1,24 +1,28 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 import { IPost, ICategory } from "@/types";
 import { CardWithCorners } from "@/components/structural-lines";
+import { calcReadingTime } from "@/lib/reading-time";
 
 interface PostCardProps {
   post: IPost & { category: ICategory };
+  view?: "grid" | "list";
 }
 
-function CoverImage({
-  src,
-  alt,
-  className,
-}: {
-  src?: string;
-  alt: string;
-  className: string;
-}) {
+function formatDate(date?: Date | string) {
+  if (!date) return null;
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function CoverImage({ src, alt }: { src?: string; alt: string }) {
   if (src) {
     return (
-      <div className={`relative overflow-hidden ${className}`}>
+      <div className="relative h-40 overflow-hidden">
         <Image
           src={src}
           alt={alt}
@@ -30,9 +34,7 @@ function CoverImage({
     );
   }
   return (
-    <div
-      className={`overflow-hidden bg-muted flex items-center justify-center ${className}`}
-    >
+    <div className="h-40 bg-muted flex items-center justify-center">
       <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest opacity-40 select-none">
         no image
       </span>
@@ -49,49 +51,106 @@ export function FeaturedPostCard({ post }: PostCardProps) {
         aria-label={post.title}
         tabIndex={-1}
       />
-      <CoverImage src={post.coverImage} alt={post.title} className="h-64 md:h-80" />
-      <div className="p-6 md:p-8">
-        <div className="flex items-center gap-3 mb-3">
-          <Link
-            href={`/categories/${post.category.slug}`}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest relative z-20"
-          >
-            {post.category.name}
-          </Link>
-          <span className="text-border">·</span>
-          <span className="font-mono text-xs text-muted-foreground">
-            {post.readingTime} min read
-          </span>
-          <span className="font-mono text-xs bg-foreground text-background px-2.5 py-0.5 rounded-full ml-auto">
-            FEATURED
+      {post.coverImage ? (
+        <div className="relative h-64 md:h-72 overflow-hidden">
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+        </div>
+      ) : (
+        <div className="h-64 md:h-72 bg-muted flex items-center justify-center">
+          <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest opacity-40 select-none">
+            no image
           </span>
         </div>
+      )}
+      <div className="p-6 md:p-8">
+        <span className="font-mono text-xs bg-foreground text-background px-2.5 py-0.5 rounded-full">
+          FEATURED
+        </span>
 
-        <h2 className="font-serif text-2xl md:text-3xl font-bold mb-3 leading-tight">
+        <h2 className="font-serif text-2xl md:text-3xl font-bold mt-4 mb-3 leading-tight">
           {post.title}
         </h2>
 
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-4">
           {post.excerpt}
         </p>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {post.tags.map((tag) => (
-            <Link
-              key={tag}
-              href={`/tags/${tag}`}
-              className="font-mono text-xs px-2.5 py-1 rounded-full bg-muted hover:bg-foreground hover:text-background transition-colors relative z-20"
-            >
-              #{tag}
-            </Link>
-          ))}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-muted-foreground font-mono text-xs">
+            {formatDate(post.publishedAt) && (
+              <>
+                <span>{formatDate(post.publishedAt)}</span>
+                <span className="text-border">·</span>
+              </>
+            )}
+            <span>{calcReadingTime(post.content)} min read</span>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:-rotate-45" />
         </div>
       </div>
     </CardWithCorners>
   );
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, view = "grid" }: PostCardProps) {
+  if (view === "list") {
+    return (
+      <CardWithCorners className="group cursor-pointer hover:bg-muted/40 transition-colors duration-200 flex flex-row">
+        <Link
+          href={`/blog/${post.slug}`}
+          className="absolute inset-0 z-10"
+          aria-label={post.title}
+          tabIndex={-1}
+        />
+        {post.coverImage ? (
+          <div className="relative w-36 shrink-0 self-stretch overflow-hidden">
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="144px"
+            />
+          </div>
+        ) : (
+          <div className="w-36 shrink-0 self-stretch bg-muted flex items-center justify-center">
+            <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest opacity-40 select-none [writing-mode:vertical-rl]">
+              no image
+            </span>
+          </div>
+        )}
+        <div className="p-4 flex flex-col justify-between flex-1 min-w-0">
+          <div>
+            <h2 className="font-serif text-base font-bold leading-snug line-clamp-2 mb-1">
+              {post.title}
+            </h2>
+            <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">
+              {post.excerpt}
+            </p>
+          </div>
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-2 text-muted-foreground font-mono text-xs">
+              {formatDate(post.publishedAt) && (
+                <>
+                  <span>{formatDate(post.publishedAt)}</span>
+                  <span className="text-border">·</span>
+                </>
+              )}
+              <span>{calcReadingTime(post.content)} min read</span>
+            </div>
+            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:-rotate-45" />
+          </div>
+        </div>
+      </CardWithCorners>
+    );
+  }
+
   return (
     <CardWithCorners className="group cursor-pointer hover:bg-muted/40 transition-colors duration-200 flex flex-col">
       <Link
@@ -100,39 +159,27 @@ export function PostCard({ post }: PostCardProps) {
         aria-label={post.title}
         tabIndex={-1}
       />
-      <CoverImage src={post.coverImage} alt={post.title} className="h-44" />
-      <div className="p-6 flex flex-col flex-1">
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
-          <Link
-            href={`/categories/${post.category.slug}`}
-            className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest relative z-20"
-          >
-            {post.category.name}
-          </Link>
-          <span className="text-border">·</span>
-          <span className="font-mono text-xs text-muted-foreground">
-            {post.readingTime} min read
-          </span>
-        </div>
-
-        <h2 className="font-serif text-xl font-bold mb-2 leading-snug">
+      <CoverImage src={post.coverImage} alt={post.title} />
+      <div className="p-5 flex flex-col flex-1">
+        <h2 className="font-serif text-lg font-bold mb-2 leading-snug flex-1">
           {post.title}
         </h2>
 
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4 flex-1">
+        <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 mb-4">
           {post.excerpt}
         </p>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {post.tags.map((tag) => (
-            <Link
-              key={tag}
-              href={`/tags/${tag}`}
-              className="font-mono text-xs px-2.5 py-1 rounded-full bg-muted hover:bg-foreground hover:text-background transition-colors relative z-20"
-            >
-              #{tag}
-            </Link>
-          ))}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-muted-foreground font-mono text-xs">
+            {formatDate(post.publishedAt) && (
+              <>
+                <span>{formatDate(post.publishedAt)}</span>
+                <span className="text-border">·</span>
+              </>
+            )}
+            <span>{calcReadingTime(post.content)} min read</span>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:-rotate-45" />
         </div>
       </div>
     </CardWithCorners>
