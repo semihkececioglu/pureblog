@@ -4,7 +4,7 @@ import Post from "@/models/Post";
 import { z } from "zod";
 
 const schema = z.object({
-  type: z.enum(["like", "heart", "fire"]),
+  type: z.enum(["heart"]),
 });
 
 interface RouteParams {

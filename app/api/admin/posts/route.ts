@@ -31,12 +31,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     await connectDB();
 
-    const wordCount = data.content.replace(/<[^>]+>/g, "").split(/\s+/).length;
-    const readingTime = Math.ceil(wordCount / 200);
-
     const post = await Post.create({
       ...data,
-      readingTime,
       publishedAt: data.status === "published" ? new Date() : undefined,
     });
 

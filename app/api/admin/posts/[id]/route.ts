@@ -39,14 +39,10 @@ export async function PATCH(
 
     await connectDB();
 
-    const wordCount = data.content.replace(/<[^>]+>/g, "").split(/\s+/).length;
-    const readingTime = Math.ceil(wordCount / 200);
-
     const post = await Post.findByIdAndUpdate(
       id,
       {
         ...data,
-        readingTime,
         publishedAt: data.status === "published" ? new Date() : undefined,
       },
       { new: true },
