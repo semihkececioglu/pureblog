@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import Post from "@/models/Post";
@@ -61,9 +62,7 @@ export default async function CategoriesPage() {
                 )}
                 <span className="font-mono text-xs text-muted-foreground group-hover:text-foreground transition-colors mt-1 inline-flex items-center gap-1">
                   Browse
-                  <span className="transition-transform duration-200 group-hover:translate-x-1 inline-block">
-                    →
-                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" />
                 </span>
               </Link>
             </CardWithCorners>

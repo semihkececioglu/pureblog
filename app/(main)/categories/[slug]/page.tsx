@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
@@ -44,9 +45,7 @@ export default async function CategoryPage({ params }: PageProps) {
         href="/categories"
         className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground hover:text-foreground transition-colors mb-10 group"
       >
-        <span className="transition-transform duration-200 group-hover:-translate-x-1 inline-block">
-          ←
-        </span>
+        <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-200 group-hover:-translate-x-1" />
         Categories
       </Link>
 
