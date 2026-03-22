@@ -20,7 +20,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-interface CommentNode extends IComment {
+interface CommentNode extends Omit<IComment, '_id' | 'parentCommentId'> {
   _id: string;
   parentCommentId?: string;
   replies: CommentNode[];
