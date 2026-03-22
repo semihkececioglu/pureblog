@@ -2,17 +2,28 @@ export const dynamic = "force-dynamic";
 
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
+import Post from "@/models/Post";
 import { ICategory } from "@/types";
 import { CategoryList } from "./category-list";
 
-async function getCategories() {
+async function getCategoriesWithPostCount() {
   await connectDB();
   const categories = await Category.find().sort({ name: 1 }).lean();
-  return categories as unknown as (ICategory & { _id: string })[];
+
+  const postCounts = await Post.aggregate([
+    { $group: { _id: "$category", count: { $sum: 1 } } },
+  ]);
+  const countMap = new Map(postCounts.map((p) => [String(p._id), p.count as number]));
+
+  const plain = JSON.parse(JSON.stringify(categories)) as (ICategory & { _id: string })[];
+  return plain.map((cat) => ({
+    ...cat,
+    postCount: countMap.get(cat._id) ?? 0,
+  }));
 }
 
 export default async function AdminCategoriesPage() {
-  const categories = await getCategories();
+  const categories = await getCategoriesWithPostCount();
 
   return (
     <div>

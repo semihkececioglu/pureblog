@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import { connectDB } from "@/lib/db";
 import Category from "@/models/Category";
 import { auth } from "@/auth";
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await connectDB();
 
     const category = await Category.create(data);
+    revalidateTag("categories");
     return NextResponse.json({ data: category, error: null });
   } catch {
     return NextResponse.json(
