@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -6,19 +8,22 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import "@/models/Category";
-import { IPost, ICategory } from "@/types";
+import PostSeries from "@/models/PostSeries";
+import { IPost, ICategory, IPostSeries } from "@/types";
+import { SeriesNavigation } from "@/components/series-navigation";
 import { ViewCounter } from "./view-tracker";
 import { ReactionBar } from "./reaction-bar";
 import { StripedPattern } from "@/components/magicui/striped-pattern";
 import { CommentSection } from "./comment-section";
 import { siteUrl, siteName } from "@/lib/metadata";
-import { ArticleJsonLd } from "@/components/json-ld";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
 import { TableOfContents } from "@/components/table-of-contents";
 import { addHeadingIds, extractHeadings } from "@/lib/toc";
 import { RelatedPosts } from "@/components/related-posts";
 import { BackToTop } from "@/components/back-to-top";
 import { ShareButtons } from "@/components/share-buttons";
 import { calcReadingTime } from "@/lib/reading-time";
+import DOMPurify from "isomorphic-dompurify";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -108,15 +113,32 @@ async function getRelatedPosts(
     .lean() as unknown as IPost[];
 }
 
+async function getSeriesData(seriesId: import("mongoose").Types.ObjectId) {
+  const [series, posts] = await Promise.all([
+    PostSeries.findById(seriesId).lean() as Promise<IPostSeries | null>,
+    Post.find({ series: seriesId, status: "published" })
+      .select("title slug seriesOrder")
+      .lean() as Promise<{ slug: string; title: string; seriesOrder: number }[]>,
+  ]);
+  return series ? { series, posts } : null;
+}
+
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
   const post = await getPost(slug);
 
   if (!post) notFound();
 
-  const { prev, next } = await getAdjacentPosts(post.publishedAt!);
-  const related = await getRelatedPosts(post.category._id, post.slug);
-  const contentWithIds = addHeadingIds(post.content);
+  const [{ prev, next }, related, seriesData] = await Promise.all([
+    getAdjacentPosts(post.publishedAt!),
+    getRelatedPosts(post.category._id, post.slug),
+    post.series ? getSeriesData(post.series as unknown as import("mongoose").Types.ObjectId) : null,
+  ]);
+  const rawContent = addHeadingIds(post.content);
+  const contentWithIds = DOMPurify.sanitize(rawContent, {
+    USE_PROFILES: { html: true },
+    ADD_ATTR: ["id", "class", "target", "rel"],
+  });
   const headings = extractHeadings(contentWithIds);
   const readingTime = calcReadingTime(post.content);
   const postUrl = `${siteUrl}/blog/${post.slug}`;
@@ -126,6 +148,8 @@ export default async function PostPage({ params }: PageProps) {
       <ShareButtons
         title={post.title}
         url={postUrl}
+        slug={post.slug}
+        excerpt={post.excerpt}
         prevSlug={prev ? (prev as IPost).slug : undefined}
         nextSlug={next ? (next as IPost).slug : undefined}
       />
@@ -137,6 +161,13 @@ export default async function PostPage({ params }: PageProps) {
           updatedAt={post.updatedAt}
           slug={post.slug}
           coverImage={post.coverImage}
+        />
+        <BreadcrumbJsonLd
+          items={[
+            { name: "Home", url: siteUrl },
+            { name: post.category.name, url: `${siteUrl}/categories/${post.category.slug}` },
+            { name: post.title, url: `${siteUrl}/blog/${post.slug}` },
+          ]}
         />
 
         <header className="mb-8">
@@ -193,6 +224,14 @@ export default async function PostPage({ params }: PageProps) {
         )}
 
         {headings.length > 0 && <TableOfContents headings={headings} />}
+
+        {seriesData && (
+          <SeriesNavigation
+            seriesName={(seriesData.series as IPostSeries).name}
+            posts={seriesData.posts}
+            currentSlug={post.slug}
+          />
+        )}
 
         <div
           className="prose prose-neutral dark:prose-invert max-w-none"

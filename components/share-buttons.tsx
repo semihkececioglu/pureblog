@@ -10,6 +10,14 @@ import {
   ArrowRight,
   MoreHorizontal,
 } from "lucide-react";
+import { StripedPattern } from "@/components/magicui/striped-pattern";
+import { BookmarkButton } from "@/components/bookmark-button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 function XIcon() {
   return (
@@ -26,21 +34,34 @@ function LinkedinIcon() {
     </svg>
   );
 }
-import { StripedPattern } from "@/components/magicui/striped-pattern";
 
 interface Props {
   title: string;
   url: string;
+  slug: string;
+  excerpt?: string;
   prevSlug?: string;
   nextSlug?: string;
 }
 
 const iconProps = { className: "w-3.5 h-3.5", strokeWidth: 2.5 };
 
-export function ShareButtons({ title, url, prevSlug, nextSlug }: Props) {
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
+
+export function ShareButtons({ title, url, slug, excerpt, prevSlug, nextSlug }: Props) {
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
   const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
@@ -54,11 +75,12 @@ export function ShareButtons({ title, url, prevSlug, nextSlug }: Props) {
   }
 
   function nativeShare() {
-    navigator.share?.({ title, url }).catch(() => {});
+    navigator.share?.({ title, text: excerpt, url }).catch(() => {});
     setShareOpen(false);
   }
 
   useEffect(() => {
+    if (isMobile) return;
     function handleClick(e: MouseEvent) {
       if (shareRef.current && !shareRef.current.contains(e.target as Node)) {
         setShareOpen(false);
@@ -66,7 +88,49 @@ export function ShareButtons({ title, url, prevSlug, nextSlug }: Props) {
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
+  }, [isMobile]);
+
+  const shareOptionClass =
+    "w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted transition-colors text-left";
+
+  const shareItems = (
+    <>
+      <button onClick={copyLink} className={shareOptionClass}>
+        {copied ? (
+          <Check className="w-4 h-4 text-green-500" strokeWidth={2.5} />
+        ) : (
+          <Copy className="w-4 h-4" strokeWidth={2.5} />
+        )}
+        {copied ? "Copied!" : "Copy link"}
+      </button>
+      <a
+        href={twitterUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => setShareOpen(false)}
+        className={shareOptionClass}
+      >
+        <XIcon />
+        Share on X
+      </a>
+      <a
+        href={linkedinUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => setShareOpen(false)}
+        className={shareOptionClass}
+      >
+        <LinkedinIcon />
+        Share on LinkedIn
+      </a>
+      {"share" in navigator && (
+        <button onClick={nativeShare} className={shareOptionClass}>
+          <MoreHorizontal className="w-4 h-4" strokeWidth={2.5} />
+          More options
+        </button>
+      )}
+    </>
+  );
 
   return (
     <div className="bg-background">
@@ -82,69 +146,84 @@ export function ShareButtons({ title, url, prevSlug, nextSlug }: Props) {
 
         {/* Right */}
         <div className="flex items-center gap-1">
-          {/* Share icon button */}
-          <div className="relative" ref={shareRef}>
-            <button
-              onClick={() => setShareOpen((p) => !p)}
-              aria-label="Share"
-              className="flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-muted/70 transition-colors"
-            >
-              {copied ? (
-                <Check {...iconProps} className="w-3.5 h-3.5 text-green-500" />
-              ) : (
-                <Upload {...iconProps} />
-              )}
-            </button>
+          {/* Bookmark button */}
+          <BookmarkButton slug={slug} title={title} />
 
-            {shareOpen && (
-              <div className="absolute left-0 top-full mt-1 w-44 border border-border bg-background shadow-lg rounded-lg overflow-hidden z-50 p-1">
-                <button
-                  onClick={copyLink}
-                  className="w-full flex items-center gap-2.5 px-2 py-1 text-sm rounded-md hover:bg-muted transition-colors"
-                >
-                  <Copy {...iconProps} />
-                  Copy link
-                </button>
-                <a
-                  href={twitterUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setShareOpen(false)}
-                  className="flex items-center gap-2.5 px-2 py-1 text-sm rounded-md hover:bg-muted transition-colors"
-                >
-                  <XIcon />
-                  Share on X
-                </a>
-                <a
-                  href={linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setShareOpen(false)}
-                  className="flex items-center gap-2.5 px-2 py-1 text-sm rounded-md hover:bg-muted transition-colors"
-                >
-                  <LinkedinIcon />
-                  Share on LinkedIn
-                </a>
-                {"share" in navigator && (
-                  <button
-                    onClick={nativeShare}
-                    className="w-full flex items-center gap-2.5 px-2 py-1 text-sm rounded-md hover:bg-muted transition-colors"
-                  >
-                    <MoreHorizontal {...iconProps} />
-                    Other app
-                  </button>
+          {/* Share button */}
+          {isMobile ? (
+            <>
+              <button
+                onClick={() => setShareOpen(true)}
+                aria-label="Share"
+                className="flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-muted/70 transition-colors cursor-pointer"
+              >
+                {copied ? (
+                  <Check {...iconProps} className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Upload {...iconProps} />
                 )}
-              </div>
-            )}
-          </div>
+              </button>
+              <Sheet open={shareOpen} onOpenChange={setShareOpen}>
+                <SheetContent side="bottom" className="pb-safe-area-inset-bottom" showCloseButton={false}>
+                  <SheetHeader className="pb-2">
+                    <SheetTitle>Share</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-col border-t border-border">
+                    {shareItems}
+                  </div>
+                  <div className="px-4 pb-4 pt-2">
+                    <button
+                      onClick={() => setShareOpen(false)}
+                      className="w-full py-2.5 text-sm font-medium text-muted-foreground bg-muted rounded-lg hover:bg-muted/70 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </>
+          ) : (
+            <div className="relative" ref={shareRef}>
+              <button
+                onClick={() => setShareOpen((p) => !p)}
+                aria-label="Share"
+                className="flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-muted/70 transition-colors cursor-pointer"
+              >
+                {copied ? (
+                  <Check {...iconProps} className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Upload {...iconProps} />
+                )}
+              </button>
+
+              {shareOpen && (
+                <div className="absolute right-0 top-full mt-1 w-48 border border-border bg-background shadow-lg rounded-lg overflow-hidden z-50 p-1">
+                  <button onClick={copyLink} className="w-full flex items-center gap-2.5 px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors">
+                    {copied ? <Check className="w-3.5 h-3.5 text-green-500" strokeWidth={2.5} /> : <Copy {...iconProps} />}
+                    {copied ? "Copied!" : "Copy link"}
+                  </button>
+                  <a href={twitterUrl} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)} className="flex items-center gap-2.5 px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors">
+                    <XIcon />
+                    Share on X
+                  </a>
+                  <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" onClick={() => setShareOpen(false)} className="flex items-center gap-2.5 px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors">
+                    <LinkedinIcon />
+                    Share on LinkedIn
+                  </a>
+                  {"share" in navigator && (
+                    <button onClick={nativeShare} className="w-full flex items-center gap-2.5 px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors">
+                      <MoreHorizontal {...iconProps} />
+                      More options
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Prev / Next */}
           {prevSlug ? (
-            <Link
-              href={`/blog/${prevSlug}`}
-              aria-label="Previous post"
-              className="flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-muted/70 transition-colors"
-            >
+            <Link href={`/blog/${prevSlug}`} aria-label="Previous post" className="flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-muted/70 transition-colors cursor-pointer">
               <ArrowLeft {...iconProps} />
             </Link>
           ) : (
@@ -153,11 +232,7 @@ export function ShareButtons({ title, url, prevSlug, nextSlug }: Props) {
             </span>
           )}
           {nextSlug ? (
-            <Link
-              href={`/blog/${nextSlug}`}
-              aria-label="Next post"
-              className="flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-muted/70 transition-colors"
-            >
+            <Link href={`/blog/${nextSlug}`} aria-label="Next post" className="flex items-center justify-center w-7 h-7 rounded-md bg-muted hover:bg-muted/70 transition-colors cursor-pointer">
               <ArrowRight {...iconProps} />
             </Link>
           ) : (
