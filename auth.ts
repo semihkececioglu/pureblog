@@ -16,11 +16,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!email || !password) return null;
 
-        const isEmailValid = email === process.env.AUTH_ADMIN_EMAIL;
-        const isPasswordValid = await bcrypt.compare(
-          password,
-          process.env.AUTH_ADMIN_PASSWORD as string,
-        );
+        const adminEmail = (process.env.AUTH_ADMIN_EMAIL ?? "").trim();
+        const isEmailValid = email.trim() === adminEmail;
+
+        const plainPassword = process.env.AUTH_ADMIN_PASSWORD_PLAIN?.trim();
+        const hashedPassword = process.env.AUTH_ADMIN_PASSWORD?.trim();
+        const isPasswordValid = plainPassword
+          ? password.trim() === plainPassword
+          : hashedPassword
+          ? await bcrypt.compare(password.trim(), hashedPassword)
+          : false;
 
         if (!isEmailValid || !isPasswordValid) return null;
 
