@@ -8,10 +8,16 @@ import { SubscribersTable } from "./subscribers-table";
 async function getSubscribers() {
   await connectDB();
   const subscribers = await Subscriber.find().sort({ createdAt: -1 }).lean();
-  return subscribers as unknown as (ISubscriber & { _id: string })[];
+  return JSON.parse(JSON.stringify(subscribers)) as (ISubscriber & { _id: string })[];
 }
 
-export default async function AdminSubscribersPage() {
+import { Suspense } from "react";
+
+export default async function AdminSubscribersPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; page?: string };
+}) {
   const subscribers = await getSubscribers();
 
   return (
@@ -19,7 +25,9 @@ export default async function AdminSubscribersPage() {
       <h1 className="font-serif text-3xl font-bold tracking-tight mb-8">
         Subscribers
       </h1>
-      <SubscribersTable subscribers={subscribers} />
+      <Suspense>
+        <SubscribersTable subscribers={subscribers} searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }
