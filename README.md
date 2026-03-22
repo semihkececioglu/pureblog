@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pureblog
+
+A self-hosted blogging platform built with Next.js, MongoDB, and Tailwind CSS. Designed to be clean, fast, and fully manageable through a built-in admin panel.
+
+## Features
+
+- **Posts** — Create, edit, schedule, and publish posts with Markdown support
+- **Categories, Tags & Series** — Organize content with flexible taxonomies
+- **Featured Posts** — Highlight posts on the homepage via a carousel
+- **Comments** — Reader comments with admin moderation
+- **Reactions** — Emoji reactions on posts
+- **Newsletter** — Built-in subscriber management and email campaigns
+- **Contact Form** — Direct messaging from the site
+- **Bookmarks** — Let readers save posts for later
+- **Search** — Full-text search across posts
+- **RSS Feed** — Auto-generated RSS at `/rss.xml`
+- **Sitemap & Robots** — SEO-ready at `/sitemap.xml` and `/robots.txt`
+- **OG Images** — Dynamic Open Graph images for social sharing
+- **Admin Panel** — Manage everything from `/admin`
+- **Authentication** — Secured admin access via NextAuth
+
+## Tech Stack
+
+- [Next.js](https://nextjs.org) (App Router)
+- [MongoDB](https://www.mongodb.com) with Mongoose
+- [Tailwind CSS](https://tailwindcss.com) v4
+- [NextAuth.js](https://next-auth.js.org)
+- [pnpm](https://pnpm.io)
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository and install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Copy `.env.example` to `.env.local` and fill in the required variables:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Run the development server:
 
-## Learn More
+```bash
+pnpm dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000) to view the site and [http://localhost:3000/admin](http://localhost:3000/admin) for the admin panel.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment Variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Description |
+|---|---|
+| `MONGODB_URI` | MongoDB connection string |
+| `AUTH_SECRET` | Secret for NextAuth session signing (`openssl rand -base64 32`) |
+| `NEXT_PUBLIC_APP_URL` | Public URL of the app |
+| `AUTH_ADMIN_EMAIL` | Admin login email |
+| `AUTH_ADMIN_PASSWORD_PLAIN` | Admin password as plain text — **local dev only** |
+| `AUTH_ADMIN_PASSWORD` | Admin password as bcrypt hash — **use in production** |
 
-## Deploy on Vercel
+> See `.env.example` for the full list.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Admin Password
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app supports two modes for the admin password:
+
+**Local development** — set `AUTH_ADMIN_PASSWORD_PLAIN` to your password as plain text. Simple and fast.
+
+```env
+AUTH_ADMIN_PASSWORD_PLAIN=mysecretpassword
+```
+
+**Production** — set `AUTH_ADMIN_PASSWORD` to a bcrypt hash instead. Remove or leave `AUTH_ADMIN_PASSWORD_PLAIN` unset.
+
+Generate the hash with Node.js (no extra dependencies needed if bcryptjs is already installed):
+
+```bash
+node -e "import('bcryptjs').then(m => m.hash('yourpassword', 12).then(console.log))"
+```
+
+Then paste the output into your environment:
+
+```env
+AUTH_ADMIN_PASSWORD=$2b$12$...
+```
+
+> The app checks `AUTH_ADMIN_PASSWORD_PLAIN` first. If it is set, the hashed variable is ignored — so make sure it is removed or commented out in production.
+
+## Project Structure
+
+```
+app/
+  (main)/       # Public-facing pages
+  admin/        # Admin panel pages and components
+  api/          # API routes
+components/     # Shared UI components
+lib/            # Database, auth, and utility helpers
+models/         # Mongoose models
+types/          # TypeScript type definitions
+public/         # Static assets
+```
