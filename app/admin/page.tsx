@@ -38,7 +38,7 @@ async function getDashboardData() {
   return {
     stats: { posts: postCount, comments: commentCount, messages: messageCount, subscribers: subscriberCount },
     recentPosts: recentPosts as Array<{ _id: { toString(): string }; title: string; slug: string; views: number }>,
-    recentComments: recentComments as Array<{
+    recentComments: recentComments as unknown as Array<{
       _id: { toString(): string };
       name: string;
       content: string;
