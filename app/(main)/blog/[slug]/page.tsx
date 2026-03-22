@@ -23,7 +23,7 @@ import { RelatedPosts } from "@/components/related-posts";
 import { BackToTop } from "@/components/back-to-top";
 import { ShareButtons } from "@/components/share-buttons";
 import { calcReadingTime } from "@/lib/reading-time";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -135,9 +135,19 @@ export default async function PostPage({ params }: PageProps) {
     post.series ? getSeriesData(post.series as unknown as import("mongoose").Types.ObjectId) : null,
   ]);
   const rawContent = addHeadingIds(post.content);
-  const contentWithIds = DOMPurify.sanitize(rawContent, {
-    USE_PROFILES: { html: true },
-    ADD_ATTR: ["id", "class", "target", "rel"],
+  const contentWithIds = sanitizeHtml(rawContent, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+      "img", "figure", "figcaption",
+      "h1", "h2", "h3", "h4", "h5", "h6",
+      "pre", "code", "s", "u", "mark",
+    ]),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      "*": ["id", "class"],
+      "a": ["href", "target", "rel"],
+      "img": ["src", "alt", "width", "height"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
   });
   const headings = extractHeadings(contentWithIds);
   const readingTime = calcReadingTime(post.content);
