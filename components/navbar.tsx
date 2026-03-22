@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Search, Menu, X, ChevronDown, ArrowRight } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Search, ChevronDown, ArrowRight, Bookmark } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { StripedPattern } from "@/components/magicui/striped-pattern";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { useCommandPalette } from "@/components/command-palette";
 
 interface TopCategory {
   _id: string;
@@ -161,45 +162,28 @@ const staticLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-const allMobileLinks = [
-  { href: "/blog", label: "Blog" },
-  { href: "/categories", label: "Categories" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-];
-
-export function Navbar() {
+export function Navbar({ siteName = "Pureblog" }: { siteName?: string }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const { openPalette } = useCommandPalette();
 
-  // Close mobile menu on route change
-  const prevPathnameRef = useRef(pathname);
-  useEffect(() => {
-    if (prevPathnameRef.current !== pathname) {
-      prevPathnameRef.current = pathname;
-      setTimeout(() => setOpen(false), 0);
-    }
-  }, [pathname]);
-
-  // ⌘K / Ctrl+K → go to search
+  // ⌘K / Ctrl+K → open command palette
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        router.push("/search");
+        openPalette();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [router]);
+  }, [openPalette]);
 
   return (
     <header className="relative">
       <nav className="relative max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="font-serif text-lg font-bold tracking-tight">
-          Pureblog
+          {siteName}
         </Link>
 
         {/* Desktop links */}
@@ -222,87 +206,32 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-1">
-            <Link href="/search" title="Search (Ctrl+K)">
-              <Button variant="ghost" size="icon" aria-label="Search" className="relative group">
-                <Search width={16} height={16} />
-                <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center gap-1 bg-popover border border-border text-[10px] text-muted-foreground px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm pointer-events-none z-50">
-                  <kbd className="font-mono">⌘K</kbd>
-                </span>
-              </Button>
-            </Link>
-            <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Toggle menu"
-              className="md:hidden"
-              onClick={() => setOpen((prev) => !prev)}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                {open ? (
-                  <motion.span
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="flex"
-                  >
-                    <X width={16} height={16} />
-                  </motion.span>
-                ) : (
-                  <motion.span
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="flex"
-                  >
-                    <Menu width={16} height={16} />
-                  </motion.span>
-                )}
-              </AnimatePresence>
+          {/* Search — desktop only */}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Search"
+            title="Search (Ctrl+K)"
+            className="relative group hidden md:flex"
+            onClick={openPalette}
+          >
+            <Search width={16} height={16} />
+            <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center gap-1 bg-popover border border-border text-[10px] text-muted-foreground px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm pointer-events-none z-50">
+              <kbd className="font-mono">⌘K</kbd>
+            </span>
+          </Button>
+
+          {/* Bookmarks — always visible */}
+          <Link href="/bookmarks" title="Bookmarks">
+            <Button variant="ghost" size="icon" aria-label="Bookmarks">
+              <Bookmark width={16} height={16} />
             </Button>
+          </Link>
+
+          {/* Theme toggle — always visible */}
+          <ThemeToggle />
         </div>
       </nav>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="md:hidden border-t border-border overflow-hidden"
-          >
-            <ul className="max-w-3xl mx-auto px-4 py-3 flex flex-col gap-1">
-              {allMobileLinks.map((link) => {
-                const isActive =
-                  link.href === "/blog"
-                    ? pathname.startsWith("/blog")
-                    : pathname.startsWith(link.href);
-                return (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className={`flex items-center text-sm px-2.5 py-2 rounded-sm transition-colors hover:bg-muted/60 ${
-                        isActive
-                          ? "text-foreground font-medium"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      onClick={() => setOpen(false)}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="relative h-2 overflow-hidden border-y border-border">
         <StripedPattern direction="right" className="text-border" />
