@@ -1,32 +1,20 @@
+export const revalidate = 60;
+
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { connectDB } from "@/lib/db";
-import Category from "@/models/Category";
-import Post from "@/models/Post";
-import { ICategory } from "@/types";
+import { buildMetadata } from "@/lib/metadata";
+import { getCachedCategoriesWithCount } from "@/lib/cache";
 import { CardWithCorners } from "@/components/structural-lines";
 
-async function getCategoriesWithCount() {
-  await connectDB();
-  const categories = (await Category.find()
-    .sort({ name: 1 })
-    .lean()) as unknown as ICategory[];
-
-  const categoriesWithCount = await Promise.all(
-    categories.map(async (cat) => ({
-      ...cat,
-      postCount: await Post.countDocuments({
-        category: cat._id,
-        status: "published",
-      }),
-    }))
-  );
-
-  return categoriesWithCount;
-}
+export const metadata: Metadata = buildMetadata({
+  title: "Categories",
+  description: "Browse posts by topic.",
+  path: "/categories",
+});
 
 export default async function CategoriesPage() {
-  const categories = await getCategoriesWithCount();
+  const categories = await getCachedCategoriesWithCount();
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
