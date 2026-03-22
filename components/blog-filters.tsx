@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ICategory } from "@/types";
 import AnimatedTabs from "@/components/forgeui/animated-tabs";
@@ -12,12 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Check, LayoutGrid, List, Search } from "lucide-react";
 import { motion } from "motion/react";
+import { useView } from "@/components/view-context";
 
 interface BlogFiltersProps {
   categories: ICategory[];
   currentCategory: string;
   currentSort: string;
-  currentView: "grid" | "list";
   currentSearch: string;
 }
 
@@ -33,7 +33,6 @@ export function BlogFilters({
   categories,
   currentCategory,
   currentSort,
-  currentView,
   currentSearch,
 }: BlogFiltersProps) {
   const router = useRouter();
@@ -41,9 +40,16 @@ export function BlogFilters({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tabs = [ALL_TAB, ...categories.map((c) => c.name)];
-  const activeTabName = currentCategory
+  const { view: activeView, setView } = useView();
+
+  const resolvedTab = currentCategory
     ? (categories.find((c) => c.slug === currentCategory)?.name ?? ALL_TAB)
     : ALL_TAB;
+  const [activeTabName, setActiveTabName] = useState(resolvedTab);
+
+  useEffect(() => {
+    setActiveTabName(resolvedTab);
+  }, [resolvedTab]);
 
   const activeSortLabel =
     SORT_OPTIONS.find((o) => o.value === currentSort)?.label ?? "Newest";
@@ -59,11 +65,12 @@ export function BlogFilters({
   }
 
   function handleTabChange(tabName: string) {
+    setActiveTabName(tabName);
     const slug =
       tabName === ALL_TAB
         ? null
         : (categories.find((c) => c.name === tabName)?.slug ?? null);
-    router.push(`/blog?${buildParams({ category: slug })}`);
+    router.push(`/blog?${buildParams({ category: slug })}`, { scroll: false });
   }
 
   function handleSort(value: string) {
@@ -79,7 +86,9 @@ export function BlogFilters({
   }
 
   function handleView(v: "grid" | "list") {
-    router.push(`/blog?${buildParams({ view: v === "grid" ? null : v })}`);
+    setView(v);
+    const params = buildParams({ view: v === "grid" ? null : v });
+    window.history.pushState(null, "", `/blog?${params}`);
   }
 
   return (
@@ -96,72 +105,71 @@ export function BlogFilters({
         />
       </div>
 
-      {/* Filters row */}
-      <div className="flex items-center gap-3 min-w-0">
-        {/* Scrollable tabs — single row, swipeable */}
-        <div className="flex-1 min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <AnimatedTabs
-            tabs={tabs}
-            variant="default"
-            activeTab={activeTabName}
-            onTabChange={handleTabChange}
-          />
-        </div>
+      {/* Tabs row — full width */}
+      <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <AnimatedTabs
+          tabs={tabs}
+          variant="default"
+          activeTab={activeTabName}
+          onTabChange={handleTabChange}
+          className="min-w-full"
+        />
+      </div>
 
-        <div className="flex flex-shrink-0 items-center gap-2">
-          {/* Sort */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-none border border-border bg-background px-4 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus:outline-none">
-              {activeSortLabel}
-              <ChevronDown className="w-3.5 h-3.5" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {SORT_OPTIONS.map((opt) => (
-                <DropdownMenuItem
-                  key={opt.value}
-                  onClick={() => handleSort(opt.value)}
-                  className="flex items-center justify-between gap-4"
-                >
-                  {opt.label}
-                  {currentSort === opt.value && (
-                    <Check className="w-3.5 h-3.5" />
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* View toggle */}
-          <div className="flex items-center rounded-none border border-border bg-background p-0.5">
-            {(["grid", "list"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => handleView(v)}
-                className={`relative flex cursor-pointer items-center justify-center w-7 h-7 rounded-none transition-colors ${
-                  currentView === v
-                    ? "text-background"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                }`}
-                aria-label={`${v} view`}
+      {/* Sort + View row */}
+      <div className="flex items-center gap-2">
+        {/* Sort */}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="inline-flex cursor-pointer items-center gap-2 rounded-none border border-border bg-background px-4 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors focus:outline-none">
+            {activeSortLabel}
+            <ChevronDown className="w-3.5 h-3.5" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {SORT_OPTIONS.map((opt) => (
+              <DropdownMenuItem
+                key={opt.value}
+                onClick={() => handleSort(opt.value)}
+                className="flex items-center justify-between gap-4"
               >
-                {currentView === v && (
-                  <motion.div
-                    layoutId="view-toggle-bg"
-                    className="absolute inset-0 rounded-none bg-foreground"
-                    initial={false}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
+                {opt.label}
+                {currentSort === opt.value && (
+                  <Check className="w-3.5 h-3.5" />
                 )}
-                <span className="relative z-10">
-                  {v === "grid" ? (
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                  ) : (
-                    <List className="w-3.5 h-3.5" />
-                  )}
-                </span>
-              </button>
+              </DropdownMenuItem>
             ))}
-          </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* View toggle */}
+        <div className="flex items-center rounded-none border border-border bg-background p-0.5">
+          {(["grid", "list"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => handleView(v)}
+              className={`relative flex cursor-pointer items-center justify-center w-7 h-7 rounded-none transition-colors ${
+                activeView === v
+                  ? "text-background"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              }`}
+              aria-label={`${v} view`}
+            >
+              {activeView === v && (
+                <motion.div
+                  layoutId="view-toggle-bg"
+                  className="absolute inset-0 rounded-none bg-foreground"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 900, damping: 40 }}
+                />
+              )}
+              <span className="relative z-10">
+                {v === "grid" ? (
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                ) : (
+                  <List className="w-3.5 h-3.5" />
+                )}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
     </div>

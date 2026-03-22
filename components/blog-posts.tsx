@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { PostCard } from "@/components/post-card";
+import { PostsView } from "@/components/posts-view";
+import { Pagination } from "@/components/pagination";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import Category from "@/models/Category";
@@ -83,92 +82,19 @@ export async function BlogPosts({
     return `/blog?${params.toString()}`;
   };
 
-  const getPageNumbers = () => {
-    const delta = 2;
-    const range: (number | "...")[] = [];
-    const left = Math.max(2, page - delta);
-    const right = Math.min(totalPages - 1, page + delta);
-    range.push(1);
-    if (left > 2) range.push("...");
-    for (let i = left; i <= right; i++) range.push(i);
-    if (right < totalPages - 1) range.push("...");
-    if (totalPages > 1) range.push(totalPages);
-    return range;
-  };
-
   return (
     <>
       {posts.length === 0 ? (
         <p className="text-muted-foreground col-span-2">No posts found.</p>
-      ) : view === "list" ? (
-        <div className="flex flex-col gap-4">
-          {posts.map((post) => (
-            <PostCard key={String(post._id)} post={post} view="list" />
-          ))}
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {posts.map((post) => (
-            <PostCard key={String(post._id)} post={post} view="grid" />
-          ))}
-        </div>
+        <PostsView posts={posts} />
       )}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1 mt-12">
-          {page > 1 ? (
-            <Link
-              href={buildPageHref(page - 1)}
-              className="flex items-center justify-center w-9 h-9 border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          ) : (
-            <span className="flex items-center justify-center w-9 h-9 border border-border/30 text-muted-foreground/30 cursor-not-allowed">
-              <ArrowLeft className="w-4 h-4" />
-            </span>
-          )}
-
-          {getPageNumbers().map((p, i) =>
-            p === "..." ? (
-              <span
-                key={`ellipsis-${i}`}
-                className="flex items-center justify-center w-9 h-9 font-mono text-xs text-muted-foreground/40"
-              >
-                …
-              </span>
-            ) : p === page ? (
-              <span
-                key={p}
-                className="flex items-center justify-center w-9 h-9 border border-foreground bg-foreground text-background font-mono text-xs"
-              >
-                {p}
-              </span>
-            ) : (
-              <Link
-                key={p}
-                href={buildPageHref(p)}
-                className="flex items-center justify-center w-9 h-9 border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors font-mono text-xs"
-              >
-                {p}
-              </Link>
-            )
-          )}
-
-          {page < totalPages ? (
-            <Link
-              href={buildPageHref(page + 1)}
-              className="flex items-center justify-center w-9 h-9 border border-border text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
-            >
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          ) : (
-            <span className="flex items-center justify-center w-9 h-9 border border-border/30 text-muted-foreground/30 cursor-not-allowed">
-              <ArrowRight className="w-4 h-4" />
-            </span>
-          )}
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        buildHref={buildPageHref}
+      />
     </>
   );
 }
