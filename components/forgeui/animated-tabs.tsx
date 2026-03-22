@@ -9,6 +9,7 @@ type AnimatedTabsProps = {
   variant?: "default" | "underline";
   activeTab?: string;
   onTabChange?: (tab: string) => void;
+  className?: string;
 };
 
 const AnimatedTabs = ({
@@ -16,6 +17,7 @@ const AnimatedTabs = ({
   variant = "default",
   activeTab: controlledTab,
   onTabChange,
+  className,
 }: AnimatedTabsProps) => {
   const [internalTab, setInternalTab] = useState(tabs[0]);
   const activeTab = controlledTab ?? internalTab;
@@ -63,7 +65,7 @@ const AnimatedTabs = ({
   }
 
   return (
-    <div className="relative flex w-max items-center rounded-none border border-border bg-background p-0.5">
+    <div className={cn("relative flex w-max items-center rounded-none border border-border bg-background p-0.5", className)}>
       {tabs.map((tab, index) => {
         const isActive = activeTab === tab;
 
@@ -86,8 +88,8 @@ const AnimatedTabs = ({
                 initial={false}
                 transition={{
                   type: "spring",
-                  stiffness: 500,
-                  damping: 30,
+                  stiffness: 900,
+                  damping: 40,
                 }}
               />
             )}

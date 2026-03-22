@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { StripedPattern } from "@/components/magicui/striped-pattern";
 
 const NEWSLETTER_IMAGE =
-  "https://wallpapermural.com/cdn/shop/products/Vase_of_Flower_Artwork.jpg?v=1750700675";
+  "https://res.cloudinary.com/da2mjic2e/image/upload/v1773893250/pureblog/ndtbhvq031vsx4wm7yvd.webp";
 
 export function NewsletterSection() {
   const [email, setEmail] = useState("");

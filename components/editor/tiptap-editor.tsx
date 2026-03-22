@@ -25,6 +25,7 @@ export function TiptapEditor({ content, onChange }: TiptapEditorProps) {
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: "Start writing..." }),
     ],
+    immediatelyRender: false,
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
