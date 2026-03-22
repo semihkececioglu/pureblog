@@ -8,7 +8,7 @@ import { IPost, ICategory } from "@/types";
 import { addHeadingIds, extractHeadings } from "@/lib/toc";
 import { TableOfContents } from "@/components/table-of-contents";
 import { calcReadingTime } from "@/lib/reading-time";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 export const dynamic = "force-dynamic";
 
@@ -40,9 +40,19 @@ export default async function PreviewPage({ params, searchParams }: PageProps) {
   if (!post) notFound();
 
   const rawContent = addHeadingIds(post.content);
-  const contentWithIds = DOMPurify.sanitize(rawContent, {
-    USE_PROFILES: { html: true },
-    ADD_ATTR: ["id", "class", "target", "rel"],
+  const contentWithIds = sanitizeHtml(rawContent, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+      "img", "figure", "figcaption",
+      "h1", "h2", "h3", "h4", "h5", "h6",
+      "pre", "code", "s", "u", "mark",
+    ]),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      "*": ["id", "class"],
+      "a": ["href", "target", "rel"],
+      "img": ["src", "alt", "width", "height"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
   });
   const headings = extractHeadings(contentWithIds);
   const readingTime = calcReadingTime(post.content);
