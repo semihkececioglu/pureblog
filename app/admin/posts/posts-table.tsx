@@ -76,7 +76,7 @@ export function PostsTable({
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (categoryFilter !== "all") {
       const catSlug = typeof p.category === "object" && p.category !== null
-        ? (p.category as ICategory & { _id: string }).slug
+        ? (p.category as unknown as ICategory & { _id: string }).slug
         : categories.find((c) => String(c._id) === String(p.category))?.slug ?? "";
       if (catSlug !== categoryFilter) return false;
     }
