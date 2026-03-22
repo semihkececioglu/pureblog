@@ -26,6 +26,11 @@ const PostSchema = new Schema<IPost>(
 );
 
 PostSchema.index({ title: "text", content: "text" });
+PostSchema.index({ status: 1, publishedAt: -1 });
+PostSchema.index({ status: 1, featured: 1, publishedAt: -1 });
+PostSchema.index({ status: 1, category: 1, publishedAt: -1 });
+PostSchema.index({ status: 1, tags: 1, publishedAt: -1 });
+PostSchema.index({ status: 1, series: 1, seriesOrder: 1 });
 
 if (process.env.NODE_ENV !== "production") {
   delete mongoose.models["Post"];
