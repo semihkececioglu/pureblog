@@ -1,5 +1,26 @@
 import { Types } from "mongoose";
 
+export interface ISettings {
+  _id: Types.ObjectId;
+  siteName?: string;
+  welcomeTitle?: string;
+  welcomeDescription?: string;
+  socialLinks: {
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
+    instagram?: string;
+    youtube?: string;
+    facebook?: string;
+  };
+  footerText?: string;
+  metaDescription?: string;
+  ogImage?: string;
+  googleAnalyticsId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface IPost {
   _id: Types.ObjectId;
   title: string;
@@ -16,6 +37,10 @@ export interface IPost {
     heart: number;
   };
   publishedAt?: Date;
+  scheduledAt?: Date;
+  previewToken?: string;
+  series?: Types.ObjectId;
+  seriesOrder?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,9 +53,19 @@ export interface ICategory {
   createdAt: Date;
 }
 
+export interface IPostSeries {
+  _id: Types.ObjectId;
+  name: string;
+  slug: string;
+  description?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface IComment {
   _id: Types.ObjectId;
   postId: Types.ObjectId;
+  parentCommentId?: Types.ObjectId;
   name: string;
   email: string;
   content: string;
@@ -40,9 +75,9 @@ export interface IComment {
 
 export interface ISubscriber {
   _id: Types.ObjectId;
-  name: string;
   email: string;
   status: "active" | "unsubscribed";
+  unsubscribeToken?: string;
   createdAt: Date;
 }
 

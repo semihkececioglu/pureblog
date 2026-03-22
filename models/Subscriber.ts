@@ -3,19 +3,21 @@ import { ISubscriber } from "@/types";
 
 const SubscriberSchema = new Schema<ISubscriber>(
   {
-    name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     status: {
       type: String,
       enum: ["active", "unsubscribed"],
       default: "active",
     },
+    unsubscribeToken: { type: String, unique: true, sparse: true },
   },
   { timestamps: true },
 );
 
-const Subscriber: Model<ISubscriber> =
-  mongoose.models.Subscriber ??
-  mongoose.model<ISubscriber>("Subscriber", SubscriberSchema);
+if (process.env.NODE_ENV !== "production") {
+  delete mongoose.models["Subscriber"];
+}
+
+const Subscriber: Model<ISubscriber> = mongoose.models.Subscriber ?? mongoose.model<ISubscriber>("Subscriber", SubscriberSchema);
 
 export default Subscriber;

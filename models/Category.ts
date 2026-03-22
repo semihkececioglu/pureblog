@@ -10,6 +10,10 @@ const CategorySchema = new Schema<ICategory>(
   { timestamps: true },
 );
 
+if (process.env.NODE_ENV !== "production") {
+  delete mongoose.models["Category"];
+}
+
 const Category: Model<ICategory> =
   mongoose.models.Category ??
   mongoose.model<ICategory>("Category", CategorySchema);

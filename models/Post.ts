@@ -9,7 +9,7 @@ const PostSchema = new Schema<IPost>(
     excerpt: { type: String, required: true, maxlength: 160 },
     coverImage: { type: String },
     featured: { type: Boolean, default: false },
-    category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    category: { type: Schema.Types.ObjectId, ref: "Category" },
     tags: [{ type: String }],
     status: { type: String, enum: ["draft", "published"], default: "draft" },
     views: { type: Number, default: 0 },
@@ -17,13 +17,20 @@ const PostSchema = new Schema<IPost>(
       heart: { type: Number, default: 0 },
     },
     publishedAt: { type: Date },
+    scheduledAt: { type: Date },
+    previewToken: { type: String, unique: true, sparse: true },
+    series: { type: Schema.Types.ObjectId, ref: "PostSeries" },
+    seriesOrder: { type: Number },
   },
   { timestamps: true },
 );
 
 PostSchema.index({ title: "text", content: "text" });
 
-const Post: Model<IPost> =
-  mongoose.models.Post ?? mongoose.model<IPost>("Post", PostSchema);
+if (process.env.NODE_ENV !== "production") {
+  delete mongoose.models["Post"];
+}
+
+const Post: Model<IPost> = mongoose.models.Post ?? mongoose.model<IPost>("Post", PostSchema);
 
 export default Post;

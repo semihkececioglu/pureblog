@@ -4,6 +4,7 @@ import { IComment } from "@/types";
 const CommentSchema = new Schema<IComment>(
   {
     postId: { type: Schema.Types.ObjectId, ref: "Post", required: true },
+    parentCommentId: { type: Schema.Types.ObjectId, ref: "Comment", sparse: true },
     name: { type: String, required: true },
     email: { type: String, required: true },
     content: { type: String, required: true },
@@ -16,7 +17,10 @@ const CommentSchema = new Schema<IComment>(
   { timestamps: true },
 );
 
-const Comment: Model<IComment> =
-  mongoose.models.Comment ?? mongoose.model<IComment>("Comment", CommentSchema);
+if (process.env.NODE_ENV !== "production") {
+  delete mongoose.models["Comment"];
+}
+
+const Comment: Model<IComment> = mongoose.models.Comment ?? mongoose.model<IComment>("Comment", CommentSchema);
 
 export default Comment;
