@@ -40,6 +40,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ...data,
       scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
       publishedAt: data.status === "published" ? new Date() : undefined,
+      series: data.series ?? undefined,
+      seriesOrder: data.seriesOrder ?? undefined,
       previewToken,
     });
 

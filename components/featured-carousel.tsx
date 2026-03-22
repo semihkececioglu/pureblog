@@ -54,7 +54,7 @@ function Carousel({ posts }: Props) {
 
   const transition = {
     type: "tween" as const,
-    ease: "easeInOut",
+    ease: "easeInOut" as const,
     duration: shouldReduce ? 0 : 0.38,
   };
 
@@ -90,7 +90,7 @@ function Carousel({ posts }: Props) {
           <div style={{ display: "grid" }}>
             {posts.map((post, i) => (
               <motion.div
-                key={post._id as string}
+                key={post._id as unknown as string}
                 aria-hidden={i !== current}
                 className="relative"
                 style={{ gridRow: 1, gridColumn: 1 }}

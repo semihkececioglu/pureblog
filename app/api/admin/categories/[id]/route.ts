@@ -29,7 +29,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams): Promise<
     if (!category) {
       return NextResponse.json({ data: null, error: "Category not found" }, { status: 404 });
     }
-    revalidateTag("categories");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as unknown as (tag: string) => void)("categories");
     return NextResponse.json({ data: category, error: null });
   } catch {
     return NextResponse.json({ data: null, error: "Failed to update category" }, { status: 500 });
@@ -46,7 +47,8 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams): Promis
     const { id } = await params;
     await connectDB();
     await Category.findByIdAndDelete(id);
-    revalidateTag("categories");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as unknown as (tag: string) => void)("categories");
     return NextResponse.json({ data: null, error: null });
   } catch {
     return NextResponse.json(

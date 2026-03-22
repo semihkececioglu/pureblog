@@ -79,7 +79,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        MonthCaption: MonthCaption as React.ComponentType<{ calendarMonth: CalendarMonth; displayIndex: number }>,
+        MonthCaption: MonthCaption as unknown as (props: { calendarMonth: CalendarMonth; displayIndex: number } & React.HTMLAttributes<HTMLDivElement>) => React.ReactElement,
       }}
       {...props}
     />

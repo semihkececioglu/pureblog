@@ -449,7 +449,7 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
                 name="series"
                 control={control}
                 render={({ field }) => (
-                  <Select value={field.value || "__none__"} onValueChange={(v: string) => field.onChange(v === "__none__" ? "" : v)}>
+                  <Select value={field.value || "__none__"} onValueChange={(v: string | null) => field.onChange(!v || v === "__none__" ? "" : v)}>
                     <SelectTrigger className="h-8">
                       <span className={(!field.value || field.value === "__none__") ? "text-muted-foreground" : undefined}>
                         {field.value && field.value !== "__none__"

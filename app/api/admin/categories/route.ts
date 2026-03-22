@@ -24,7 +24,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await connectDB();
 
     const category = await Category.create(data);
-    revalidateTag("categories");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as unknown as (tag: string) => void)("categories");
     return NextResponse.json({ data: category, error: null });
   } catch {
     return NextResponse.json(

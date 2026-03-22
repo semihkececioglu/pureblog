@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
-function Select({ ...props }: SelectPrimitive.Root.Props) {
+function Select({ ...props }: SelectPrimitive.Root.Props<string>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 

@@ -149,7 +149,7 @@ export function PostsTable({
         {categories.length > 0 && (
           <Select
             value={categoryFilter}
-            onValueChange={(val) => setParams({ category: val, page: "1" })}
+            onValueChange={(val: string | null) => setParams({ category: val ?? "all", page: "1" })}
           >
             <SelectTrigger className="w-48">
               <span className={categoryFilter === "all" ? "text-muted-foreground" : ""}>

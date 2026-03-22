@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"c:/pureblog/app/\\(main\\)/\")",
+      "Bash(find c:/pureblog/lib -type f -name *.ts -o -name *.tsx)",
+      "WebSearch",
+      "Bash(npm install:*)",
+      "Bash(grep -r \"TODO\\\\|FIXME\\\\|XXX\" /c/pureblog/app --include=*.ts --include=*.tsx --include=*.js)",
+      "Bash(xargs head:*)",
+      "Bash(node -e \":*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}

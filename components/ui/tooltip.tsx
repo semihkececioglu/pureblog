@@ -5,7 +5,7 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
 import { cn } from "@/lib/utils"
 
 function TooltipProvider({ children, ...props }: TooltipPrimitive.Provider.Props) {
-  return <TooltipPrimitive.Provider delayType="rest" delay={400} {...props}>{children}</TooltipPrimitive.Provider>
+  return <TooltipPrimitive.Provider delay={400} {...props}>{children}</TooltipPrimitive.Provider>
 }
 
 function Tooltip(props: TooltipPrimitive.Root.Props) {
