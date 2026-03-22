@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import { auth } from "@/auth";
 import { z } from "zod";
+import { sendToSubscribers } from "@/lib/mailer";
 
 const schema = z.object({
   title: z.string().min(3),
@@ -14,6 +15,9 @@ const schema = z.object({
   coverImage: z.string().optional(),
   featured: z.boolean().optional(),
   status: z.enum(["draft", "published"]),
+  scheduledAt: z.string().nullable().optional(),
+  series: z.string().nullable().optional(),
+  seriesOrder: z.number().nullable().optional(),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -31,10 +35,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     await connectDB();
 
+    const previewToken = crypto.randomUUID();
     const post = await Post.create({
       ...data,
+      scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : undefined,
       publishedAt: data.status === "published" ? new Date() : undefined,
+      previewToken,
     });
+
+    if (data.status === "published") {
+      sendToSubscribers(data.title, data.excerpt, data.slug).catch(console.error);
+    }
 
     return NextResponse.json({ data: post, error: null });
   } catch {

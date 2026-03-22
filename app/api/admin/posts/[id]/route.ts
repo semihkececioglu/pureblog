@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import { auth } from "@/auth";
 import { z } from "zod";
+import { sendToSubscribers } from "@/lib/mailer";
 
 const schema = z.object({
   title: z.string().min(3),
@@ -14,6 +15,9 @@ const schema = z.object({
   coverImage: z.string().optional(),
   featured: z.boolean().optional(),
   status: z.enum(["draft", "published"]),
+  scheduledAt: z.string().nullable().optional(),
+  series: z.string().nullable().optional(),
+  seriesOrder: z.number().nullable().optional(),
 });
 
 interface RouteParams {
@@ -39,10 +43,13 @@ export async function PATCH(
 
     await connectDB();
 
+    const existing = await Post.findById(id).select("status").lean();
+
     const post = await Post.findByIdAndUpdate(
       id,
       {
         ...data,
+        scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         publishedAt: data.status === "published" ? new Date() : undefined,
       },
       { new: true },
@@ -53,6 +60,10 @@ export async function PATCH(
         { data: null, error: "Post not found" },
         { status: 404 },
       );
+    }
+
+    if (existing?.status === "draft" && data.status === "published") {
+      sendToSubscribers(post.title, post.excerpt, post.slug).catch(console.error);
     }
 
     return NextResponse.json({ data: post, error: null });

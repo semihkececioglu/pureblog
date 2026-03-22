@@ -1,7 +1,9 @@
 export const dynamic = "force-dynamic";
 
+import { Suspense } from "react";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
+import Category from "@/models/Category";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -11,15 +13,18 @@ import { PostsTable } from "./posts-table";
 
 async function getPosts() {
   await connectDB();
-  const posts = await Post.find()
-    .populate("category", "name")
-    .sort({ createdAt: -1 })
-    .lean();
-  return posts as unknown as (IPost & { category: ICategory; _id: string })[];
+  const [posts, categories] = await Promise.all([
+    Post.find().populate("category", "name slug").sort({ createdAt: -1 }).lean(),
+    Category.find().sort({ name: 1 }).lean(),
+  ]);
+  return {
+    posts: JSON.parse(JSON.stringify(posts)) as (IPost & { category: ICategory; _id: string })[],
+    categories: JSON.parse(JSON.stringify(categories)) as (ICategory & { _id: string })[],
+  };
 }
 
 export default async function AdminPostsPage() {
-  const posts = await getPosts();
+  const { posts, categories } = await getPosts();
 
   return (
     <div>
@@ -32,7 +37,9 @@ export default async function AdminPostsPage() {
           </Link>
         </Button>
       </div>
-      <PostsTable posts={posts} />
+      <Suspense>
+        <PostsTable posts={posts} categories={categories} />
+      </Suspense>
     </div>
   );
 }
