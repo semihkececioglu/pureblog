@@ -109,7 +109,7 @@ async function getRelatedPosts(
   })
     .sort({ publishedAt: -1 })
     .limit(3)
-    .select("title slug excerpt coverImage content publishedAt")
+    .select("title slug excerpt coverImage readingTime publishedAt")
     .lean() as unknown as IPost[];
 }
 

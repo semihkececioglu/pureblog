@@ -8,12 +8,16 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 const nextConfig: NextConfig = {
   images: {
+    minimumCacheTTL: 3600,
     remotePatterns: [
       {
         protocol: "https",
         hostname: "**",
       },
     ],
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "motion/react", "@tiptap/react"],
   },
 };
 

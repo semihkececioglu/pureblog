@@ -10,6 +10,8 @@ const CategorySchema = new Schema<ICategory>(
   { timestamps: true },
 );
 
+CategorySchema.index({ slug: 1 }, { unique: true });
+
 if (process.env.NODE_ENV !== "production") {
   delete mongoose.models["Category"];
 }

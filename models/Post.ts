@@ -21,6 +21,7 @@ const PostSchema = new Schema<IPost>(
     previewToken: { type: String, unique: true, sparse: true },
     series: { type: Schema.Types.ObjectId, ref: "PostSeries" },
     seriesOrder: { type: Number },
+    readingTime: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
@@ -31,6 +32,7 @@ PostSchema.index({ status: 1, featured: 1, publishedAt: -1 });
 PostSchema.index({ status: 1, category: 1, publishedAt: -1 });
 PostSchema.index({ status: 1, tags: 1, publishedAt: -1 });
 PostSchema.index({ status: 1, series: 1, seriesOrder: 1 });
+PostSchema.index({ status: 1, scheduledAt: 1 });
 
 if (process.env.NODE_ENV !== "production") {
   delete mongoose.models["Post"];

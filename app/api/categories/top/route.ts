@@ -7,23 +7,22 @@ import { ICategory } from "@/types";
 export async function GET(): Promise<NextResponse> {
   try {
     await connectDB();
-    const categories = (await Category.find()
-      .lean()) as unknown as ICategory[];
-
-    const categoriesWithCount = await Promise.all(
-      categories.map(async (cat) => ({
+    const [counts, categories] = await Promise.all([
+      Post.aggregate<{ _id: unknown; postCount: number }>([
+        { $match: { status: "published" } },
+        { $group: { _id: "$category", postCount: { $sum: 1 } } },
+      ]),
+      Category.find().lean() as unknown as Promise<ICategory[]>,
+    ]);
+    const countMap = new Map(counts.map((c) => [String(c._id), c.postCount]));
+    const top = categories
+      .map((cat) => ({
         _id: String(cat._id),
         name: cat.name,
         slug: cat.slug,
         description: cat.description,
-        postCount: await Post.countDocuments({
-          category: cat._id,
-          status: "published",
-        }),
+        postCount: countMap.get(String(cat._id)) ?? 0,
       }))
-    );
-
-    const top = categoriesWithCount
       .sort((a, b) => b.postCount - a.postCount)
       .slice(0, 4);
 

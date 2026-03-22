@@ -1,28 +1,16 @@
-export const dynamic = "force-dynamic";
-
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { VerticalLines } from "@/components/structural-lines";
-import { unstable_noStore as noStore } from "next/cache";
-import { connectDB } from "@/lib/db";
-import Settings from "@/models/Settings";
-import { ISettings } from "@/types";
 import { siteUrl, siteName as defaultSiteName } from "@/lib/metadata";
 import { ScrollBlur } from "@/components/scroll-blur";
 import { CommandPaletteProvider } from "@/components/command-palette";
 import { MobileBottomBar } from "@/components/mobile-bottom-bar";
-
-async function getSettings() {
-  noStore();
-  await connectDB();
-  const settings = await Settings.findOne().lean();
-  return JSON.parse(JSON.stringify(settings ?? {})) as Partial<ISettings>;
-}
+import { getCachedSettings, getCachedCategoriesWithCount } from "@/lib/cache";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSettings();
+  const settings = await getCachedSettings();
   const name = settings.siteName || defaultSiteName;
   const description = settings.metaDescription || "A modern blog.";
   const ogImage = settings.ogImage || `${siteUrl}/api/og?title=${encodeURIComponent(name)}`;
@@ -46,7 +34,10 @@ export default async function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getSettings();
+  const [settings, categories] = await Promise.all([
+    getCachedSettings(),
+    getCachedCategoriesWithCount(),
+  ]);
 
   return (
     <CommandPaletteProvider>
@@ -62,7 +53,10 @@ export default async function MainLayout({
         </>
       )}
       <VerticalLines />
-      <Navbar siteName={settings.siteName || "Pureblog"} />
+      <Navbar
+        siteName={settings.siteName || "Pureblog"}
+        categories={categories.map((c) => ({ ...c, _id: String(c._id) }))}
+      />
       <main className="flex-1">
         {children}
       </main>

@@ -18,22 +18,12 @@ interface TopCategory {
   postCount: number;
 }
 
-function CategoriesMenu() {
+function CategoriesMenu({ categories }: { categories: TopCategory[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [categories, setCategories] = useState<TopCategory[]>([]);
   const ref = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isActive = pathname.startsWith("/categories");
-
-  useEffect(() => {
-    fetch("/api/categories/top")
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.data) setCategories(res.data);
-      })
-      .catch(() => {});
-  }, []);
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -162,7 +152,7 @@ const staticLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-export function Navbar({ siteName = "Pureblog" }: { siteName?: string }) {
+export function Navbar({ siteName = "Pureblog", categories = [] }: { siteName?: string; categories?: TopCategory[] }) {
   const pathname = usePathname();
   const { openPalette } = useCommandPalette();
 
@@ -200,7 +190,7 @@ export function Navbar({ siteName = "Pureblog" }: { siteName?: string }) {
             );
           })}
           <li>
-            <CategoriesMenu />
+            <CategoriesMenu categories={categories} />
           </li>
         </ul>
 

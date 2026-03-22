@@ -17,6 +17,8 @@ const CommentSchema = new Schema<IComment>(
   { timestamps: true },
 );
 
+CommentSchema.index({ postId: 1, status: 1 });
+
 if (process.env.NODE_ENV !== "production") {
   delete mongoose.models["Comment"];
 }

@@ -10,7 +10,8 @@
       "Bash(node -e \":*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(pnpm add:*)"
     ]
   }
 }

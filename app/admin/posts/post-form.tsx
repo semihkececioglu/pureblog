@@ -6,7 +6,11 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { TiptapEditor } from "@/components/editor/tiptap-editor";
+import dynamic from "next/dynamic";
+const TiptapEditor = dynamic(
+  () => import("@/components/editor/tiptap-editor").then((m) => m.TiptapEditor),
+  { ssr: false, loading: () => <div className="h-96 animate-pulse rounded bg-muted" /> },
+);
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
