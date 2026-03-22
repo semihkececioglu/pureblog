@@ -6,7 +6,7 @@ export const env = createEnv({
     MONGODB_URI: z.string().min(1),
     AUTH_SECRET: z.string().min(1),
     AUTH_ADMIN_EMAIL: z.string().email(),
-    AUTH_ADMIN_PASSWORD_PLAIN: z.string().min(1),
+    AUTH_ADMIN_PASSWORD_PLAIN: z.string().min(1).optional(),
     GMAIL_USER: z.string().email().optional(),
     GMAIL_APP_PASSWORD: z.string().optional(),
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
