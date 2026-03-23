@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { IComment } from "@/types";
@@ -28,10 +28,10 @@ const PAGE_SIZE = 10;
 
 interface CommentModerationListProps {
   initialComments: CommentWithPost[];
-  searchParams?: { q?: string; status?: string; sort?: string; page?: string };
+  totalCount: number;
 }
 
-export function CommentModerationList({ initialComments }: CommentModerationListProps) {
+export function CommentModerationList({ initialComments, totalCount }: CommentModerationListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -73,34 +73,10 @@ export function CommentModerationList({ initialComments }: CommentModerationList
     setComments((prev) => prev.filter((c) => c._id !== deleteId));
     setDeleting(false);
     setDeleteId(null);
+    router.refresh();
   }
 
-  const filtered = useMemo(() => {
-    let result = comments.filter((c) => {
-      if (statusFilter !== "all" && c.status !== statusFilter) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (
-          !c.name.toLowerCase().includes(q) &&
-          !c.email.toLowerCase().includes(q) &&
-          !c.content.toLowerCase().includes(q)
-        ) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    result = [...result].sort((a, b) => {
-      const diff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      return sortDir === "desc" ? -diff : diff;
-    });
-
-    return result;
-  }, [comments, search, statusFilter, sortDir]);
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const statusLabels: { key: StatusFilter; label: string }[] = [
     { key: "all", label: "All" },
@@ -144,11 +120,11 @@ export function CommentModerationList({ initialComments }: CommentModerationList
         </Button>
       </div>
 
-      {paginated.length === 0 ? (
+      {comments.length === 0 ? (
         <p className="text-sm text-muted-foreground">No comments found.</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {paginated.map((comment) => (
+          {comments.map((comment) => (
             <div
               key={comment._id}
               className="border border-border p-4 flex items-start justify-between gap-4"

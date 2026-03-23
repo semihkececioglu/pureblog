@@ -31,10 +31,10 @@ const PAGE_SIZE = 10;
 
 export function SubscribersTable({
   subscribers: initialSubscribers,
-  searchParams: initialSearchParams,
+  totalCount,
 }: {
   subscribers: SubscriberRow[];
-  searchParams?: { q?: string; page?: string };
+  totalCount: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -64,13 +64,7 @@ export function SubscribersTable({
     [router, pathname, searchParams],
   );
 
-  const filtered = subscribers.filter((s) => {
-    if (!search) return true;
-    return s.email.toLowerCase().includes(search.toLowerCase());
-  });
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   async function handleToggleStatus(id: string): Promise<void> {
     setTogglingId(id);
@@ -91,9 +85,11 @@ export function SubscribersTable({
     setSubscribers((prev) => prev.filter((s) => s._id !== deleteId));
     setDeleting(false);
     setDeleteId(null);
+    router.refresh();
   }
 
   const activeCount = subscribers.filter((s) => s.status === "active").length;
+  const paginated = subscribers;
 
   function handleExport() {
     window.open("/api/admin/subscribers/export", "_blank");

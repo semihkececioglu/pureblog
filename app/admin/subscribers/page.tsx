@@ -1,24 +1,45 @@
 export const dynamic = "force-dynamic";
 
+import { Suspense } from "react";
 import { connectDB } from "@/lib/db";
 import Subscriber from "@/models/Subscriber";
 import { ISubscriber } from "@/types";
 import { SubscribersTable } from "./subscribers-table";
 
-async function getSubscribers() {
-  await connectDB();
-  const subscribers = await Subscriber.find().sort({ createdAt: -1 }).lean();
-  return JSON.parse(JSON.stringify(subscribers)) as (ISubscriber & { _id: string })[];
+const PAGE_SIZE = 10;
+
+interface SearchParams {
+  q?: string;
+  page?: string;
 }
 
-import { Suspense } from "react";
+async function getSubscribers(sp: SearchParams) {
+  await connectDB();
+
+  const page = Math.max(1, Number(sp.page ?? "1"));
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const filter: Record<string, unknown> = {};
+  if (sp.q) filter.email = { $regex: sp.q, $options: "i" };
+
+  const [subscribers, total] = await Promise.all([
+    Subscriber.find(filter).sort({ createdAt: -1 }).skip(skip).limit(PAGE_SIZE).lean(),
+    Subscriber.countDocuments(filter),
+  ]);
+
+  return {
+    subscribers: JSON.parse(JSON.stringify(subscribers)) as (ISubscriber & { _id: string })[],
+    total,
+  };
+}
 
 export default async function AdminSubscribersPage({
   searchParams,
 }: {
-  searchParams: { q?: string; page?: string };
+  searchParams: Promise<SearchParams>;
 }) {
-  const subscribers = await getSubscribers();
+  const sp = await searchParams;
+  const { subscribers, total } = await getSubscribers(sp);
 
   return (
     <div>
@@ -26,7 +47,7 @@ export default async function AdminSubscribersPage({
         Subscribers
       </h1>
       <Suspense>
-        <SubscribersTable subscribers={subscribers} searchParams={searchParams} />
+        <SubscribersTable subscribers={subscribers} totalCount={total} />
       </Suspense>
     </div>
   );

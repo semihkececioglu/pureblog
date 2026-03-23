@@ -1,24 +1,54 @@
 export const dynamic = "force-dynamic";
 
+import { Suspense } from "react";
 import { connectDB } from "@/lib/db";
 import Message from "@/models/Message";
 import { IMessage } from "@/types";
 import { MessageList } from "./message-list";
 
-async function getMessages() {
-  await connectDB();
-  const messages = await Message.find().sort({ createdAt: -1 }).lean();
-  return JSON.parse(JSON.stringify(messages)) as (IMessage & { _id: string })[];
+const PAGE_SIZE = 15;
+
+interface SearchParams {
+  q?: string;
+  read?: string;
+  page?: string;
 }
 
-import { Suspense } from "react";
+async function getMessages(sp: SearchParams) {
+  await connectDB();
+
+  const page = Math.max(1, Number(sp.page ?? "1"));
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const filter: Record<string, unknown> = {};
+  if (sp.read === "unread") filter.read = false;
+  else if (sp.read === "read") filter.read = true;
+  if (sp.q) {
+    filter.$or = [
+      { name: { $regex: sp.q, $options: "i" } },
+      { email: { $regex: sp.q, $options: "i" } },
+      { subject: { $regex: sp.q, $options: "i" } },
+    ];
+  }
+
+  const [messages, total] = await Promise.all([
+    Message.find(filter).sort({ createdAt: -1 }).skip(skip).limit(PAGE_SIZE).lean(),
+    Message.countDocuments(filter),
+  ]);
+
+  return {
+    messages: JSON.parse(JSON.stringify(messages)) as (IMessage & { _id: string })[],
+    total,
+  };
+}
 
 export default async function AdminMessagesPage({
   searchParams,
 }: {
-  searchParams: { q?: string; read?: string; page?: string };
+  searchParams: Promise<SearchParams>;
 }) {
-  const messages = await getMessages();
+  const sp = await searchParams;
+  const { messages, total } = await getMessages(sp);
 
   return (
     <div>
@@ -26,7 +56,7 @@ export default async function AdminMessagesPage({
         Messages
       </h1>
       <Suspense>
-        <MessageList initialMessages={messages} searchParams={searchParams} />
+        <MessageList initialMessages={messages} totalCount={total} />
       </Suspense>
     </div>
   );

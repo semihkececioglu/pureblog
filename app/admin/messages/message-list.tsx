@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { IMessage } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -23,10 +23,10 @@ const PAGE_SIZE = 15;
 
 interface MessageListProps {
   initialMessages: MessageRow[];
-  searchParams?: { q?: string; read?: string; page?: string };
+  totalCount: number;
 }
 
-export function MessageList({ initialMessages }: MessageListProps) {
+export function MessageList({ initialMessages, totalCount }: MessageListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -84,28 +84,11 @@ export function MessageList({ initialMessages }: MessageListProps) {
     if (expanded === deleteId) setExpanded(null);
     setDeleting(false);
     setDeleteId(null);
+    router.refresh();
   }
 
-  const filtered = useMemo(() => {
-    return messages.filter((m) => {
-      if (readFilter === "unread" && m.read) return false;
-      if (readFilter === "read" && !m.read) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (
-          !m.name.toLowerCase().includes(q) &&
-          !m.email.toLowerCase().includes(q) &&
-          !m.subject.toLowerCase().includes(q)
-        ) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [messages, search, readFilter]);
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const paginated = messages;
 
   const filterLabels: { key: ReadFilter; label: string }[] = [
     { key: "all", label: "All" },

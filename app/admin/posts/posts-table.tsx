@@ -37,16 +37,17 @@ type SortDir = "asc" | "desc";
 const PAGE_SIZE = 10;
 
 export function PostsTable({
-  posts: initialPosts,
+  posts,
   categories,
+  totalCount,
 }: {
   posts: PostRow[];
   categories: (ICategory & { _id: string })[];
+  totalCount: number;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [posts, setPosts] = useState(initialPosts);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -70,33 +71,7 @@ export function PostsTable({
     [router, pathname, searchParams],
   );
 
-  // Filter
-  let filtered = posts.filter((p) => {
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
-    if (statusFilter !== "all" && p.status !== statusFilter) return false;
-    if (categoryFilter !== "all") {
-      const catSlug = typeof p.category === "object" && p.category !== null
-        ? (p.category as unknown as ICategory & { _id: string }).slug
-        : categories.find((c) => String(c._id) === String(p.category))?.slug ?? "";
-      if (catSlug !== categoryFilter) return false;
-    }
-    return true;
-  });
-
-  // Sort
-  filtered = [...filtered].sort((a, b) => {
-    let av: string | number;
-    let bv: string | number;
-    if (sortKey === "title") { av = a.title.toLowerCase(); bv = b.title.toLowerCase(); }
-    else if (sortKey === "views") { av = a.views; bv = b.views; }
-    else { av = new Date(a.createdAt).getTime(); bv = new Date(b.createdAt).getTime(); }
-    if (av < bv) return sortDir === "asc" ? -1 : 1;
-    if (av > bv) return sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   function toggleSort(key: SortKey) {
     const newDir = sortKey === key ? (sortDir === "asc" ? "desc" : "asc") : "desc";
@@ -118,7 +93,6 @@ export function PostsTable({
     if (!deleteId) return;
     setDeleting(true);
     await fetch(`/api/admin/posts/${deleteId}`, { method: "DELETE" });
-    setPosts((prev) => prev.filter((p) => p._id !== deleteId));
     setDeleting(false);
     setDeleteId(null);
     router.refresh();
@@ -168,10 +142,10 @@ export function PostsTable({
 
       {/* Mobile cards */}
       <div className="flex flex-col gap-3 md:hidden">
-        {paginated.length === 0 ? (
+        {posts.length === 0 ? (
           <p className="text-sm text-muted-foreground py-8 text-center">No results.</p>
         ) : (
-          paginated.map((post) => (
+          posts.map((post) => (
             <div key={post._id} className="border border-border p-4 flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{post.title}</p>
@@ -230,14 +204,14 @@ export function PostsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginated.length === 0 ? (
+            {posts.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   No results.
                 </TableCell>
               </TableRow>
             ) : (
-              paginated.map((post) => (
+              posts.map((post) => (
                 <TableRow key={post._id}>
                   <TableCell className="font-medium max-w-[220px] truncate">{post.title}</TableCell>
                   <TableCell>{(post.category as ICategory)?.name ?? "—"}</TableCell>
