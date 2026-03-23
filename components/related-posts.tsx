@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { IPost } from "@/types";
+import { calcReadingTime } from "@/lib/reading-time";
 
 interface Props {
   posts: IPost[];
@@ -49,7 +50,7 @@ export function RelatedPosts({ posts }: Props) {
                 {post.title}
               </span>
               <span className="font-mono text-[10px] text-muted-foreground">
-                {post.readingTime ?? 0} min · {formatDate(post.publishedAt!)}
+                {calcReadingTime(post.content)} min · {formatDate(post.publishedAt!)}
               </span>
             </div>
           </Link>

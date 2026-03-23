@@ -21,7 +21,6 @@ const PostSchema = new Schema<IPost>(
     previewToken: { type: String, unique: true, sparse: true },
     series: { type: Schema.Types.ObjectId, ref: "PostSeries" },
     seriesOrder: { type: Number },
-    readingTime: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

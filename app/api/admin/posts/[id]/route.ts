@@ -4,7 +4,6 @@ import Post from "@/models/Post";
 import { auth } from "@/auth";
 import { z } from "zod";
 import { sendToSubscribers } from "@/lib/mailer";
-import { calcReadingTime } from "@/lib/reading-time";
 
 const schema = z.object({
   title: z.string().min(3),
@@ -50,7 +49,6 @@ export async function PATCH(
       id,
       {
         ...data,
-        readingTime: calcReadingTime(data.content),
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         publishedAt: data.status === "published" ? new Date() : undefined,
       },

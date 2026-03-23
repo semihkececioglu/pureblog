@@ -41,7 +41,6 @@ export interface IPost {
   previewToken?: string;
   series?: Types.ObjectId;
   seriesOrder?: number;
-  readingTime?: number;
   createdAt: Date;
   updatedAt: Date;
 }
