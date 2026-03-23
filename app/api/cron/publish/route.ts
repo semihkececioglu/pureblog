@@ -6,8 +6,8 @@ import { sendToSubscribers } from "@/lib/mailer";
 // Vercel Cron: her saat başı çalıştır
 // vercel.json: { "crons": [{ "path": "/api/cron/publish", "schedule": "0 * * * *" }] }
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get("x-cron-secret");
-  if (secret !== process.env.CRON_SECRET) {
+  const authHeader = req.headers.get("authorization");
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
