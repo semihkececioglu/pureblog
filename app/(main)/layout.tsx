@@ -3,7 +3,7 @@ import Script from "next/script";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { VerticalLines } from "@/components/structural-lines";
-import { siteUrl, siteName as defaultSiteName } from "@/lib/metadata";
+import { siteUrl } from "@/lib/metadata";
 import { ScrollBlur } from "@/components/scroll-blur";
 import { CommandPaletteProvider } from "@/components/command-palette";
 import { MobileBottomBar } from "@/components/mobile-bottom-bar";
@@ -11,7 +11,7 @@ import { getCachedSettings, getCachedCategoriesWithCount } from "@/lib/cache";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
-  const name = settings.siteName || defaultSiteName;
+  const name = settings.siteName || "PureBlog";
   const description = settings.metaDescription || "A modern blog.";
   const ogImage = settings.ogImage || `${siteUrl}/api/og?title=${encodeURIComponent(name)}`;
 

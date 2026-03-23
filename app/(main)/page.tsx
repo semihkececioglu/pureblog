@@ -13,7 +13,7 @@ import Post from "@/models/Post";
 import Settings from "@/models/Settings";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
-import { buildMetadata, siteUrl, siteName } from "@/lib/metadata";
+import { buildMetadata, siteUrl } from "@/lib/metadata";
 import { WebsiteJsonLd } from "@/components/json-ld";
 import { StripedPattern } from "@/components/magicui/striped-pattern";
 import { TextAnimate } from "@/components/ui/text-animate";
@@ -243,10 +243,12 @@ async function FeaturedSection() {
 
 // ─── page ─────────────────────────────────────────────────────────────────────
 
-export default function HomePage() {
+export default async function HomePage() {
+  const settings = await getSettings();
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <WebsiteJsonLd siteUrl={siteUrl} siteName={siteName} />
+      <WebsiteJsonLd siteUrl={siteUrl} siteName={settings.siteName || "PureBlog"} />
 
       <Suspense fallback={<WelcomeSkeleton />}>
         <WelcomeSection />

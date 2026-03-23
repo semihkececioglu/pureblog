@@ -15,7 +15,8 @@ import { ViewCounter } from "./view-tracker";
 import { ReactionBar } from "./reaction-bar";
 import { StripedPattern } from "@/components/magicui/striped-pattern";
 import { CommentSection } from "./comment-section";
-import { siteUrl, siteName } from "@/lib/metadata";
+import { siteUrl } from "@/lib/metadata";
+import { getCachedSettings } from "@/lib/cache";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
 import { TableOfContents } from "@/components/table-of-contents";
 import { addHeadingIds, extractHeadings } from "@/lib/toc";
@@ -48,13 +49,15 @@ export async function generateMetadata({
 
   if (!post) return {};
 
+  const settings = await getCachedSettings();
+  const siteName = settings.siteName || "PureBlog";
   const url = `${siteUrl}/blog/${post.slug}`;
   const ogImage =
     post.coverImage ??
     `${siteUrl}/api/og?title=${encodeURIComponent(post.title)}`;
 
   return {
-    title: `${post.title} | ${siteName}`,
+    title: post.title,
     description: post.excerpt,
     alternates: { canonical: url },
     openGraph: {
@@ -109,7 +112,7 @@ async function getRelatedPosts(
   })
     .sort({ publishedAt: -1 })
     .limit(3)
-    .select("title slug excerpt coverImage readingTime publishedAt")
+    .select("title slug excerpt coverImage content publishedAt")
     .lean() as unknown as IPost[];
 }
 
