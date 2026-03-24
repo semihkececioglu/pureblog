@@ -78,6 +78,12 @@
   --sidebar-ring: oklch(0.573 0.005 96);
 }
 
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--muted); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
 @theme inline {
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -118,25 +124,28 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
+  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite
+    alternate;
   --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
   @keyframes shimmer-slide {
-  to {
-    transform: translate(calc(100cqw - 100%), 0);
+    to {
+      transform: translate(calc(100cqw - 100%), 0);
     }
   }
   @keyframes spin-around {
-  0% {
-    transform: translateZ(0) rotate(0);
+    0% {
+      transform: translateZ(0) rotate(0);
     }
-  15%, 35% {
-    transform: translateZ(0) rotate(90deg);
+    15%,
+    35% {
+      transform: translateZ(0) rotate(90deg);
     }
-  65%, 85% {
-    transform: translateZ(0) rotate(270deg);
+    65%,
+    85% {
+      transform: translateZ(0) rotate(270deg);
     }
-  100% {
-    transform: translateZ(0) rotate(360deg);
+    100% {
+      transform: translateZ(0) rotate(360deg);
     }
   }
 }
@@ -149,5 +158,4 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans), sans-serif;
   }
-
 }
