@@ -13,31 +13,58 @@ import { CornerMark } from "@/components/structural-lines";
 
 async function getDashboardData() {
   await connectDB();
-  const [postCount, commentCount, messageCount, subscriberCount, recentPosts, recentComments, recentMessages] =
-    await Promise.all([
-      Post.countDocuments({ status: "published" }),
-      Comment.countDocuments({ status: "pending" }),
-      Message.countDocuments({ read: false }),
-      Subscriber.countDocuments({ status: "active" }),
-      Post.find({ status: "published" })
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .select("title slug views _id")
-        .lean(),
-      Comment.find({ status: "pending" })
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .populate("postId", "title slug")
-        .lean(),
-      Message.find({ read: false })
-        .sort({ createdAt: -1 })
-        .limit(3)
-        .select("name email subject _id")
-        .lean(),
-    ]);
+  const [
+    postCount,
+    commentCount,
+    messageCount,
+    subscriberCount,
+    approvedCommentCount,
+    aggregateResult,
+    recentPosts,
+    topPosts,
+    recentComments,
+    recentMessages,
+  ] = await Promise.all([
+    Post.countDocuments({ status: "published" }),
+    Comment.countDocuments({ status: "pending" }),
+    Message.countDocuments({ read: false }),
+    Subscriber.countDocuments({ status: "active" }),
+    Comment.countDocuments({ status: "approved" }),
+    Post.aggregate([{ $group: { _id: null, totalViews: { $sum: "$views" }, totalHearts: { $sum: "$reactions.heart" } } }]),
+    Post.find({ status: "published" })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("title slug views _id")
+      .lean(),
+    Post.find({ status: "published" })
+      .sort({ views: -1 })
+      .limit(5)
+      .select("title slug views _id")
+      .lean(),
+    Comment.find({ status: "pending" })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .populate("postId", "title slug")
+      .lean(),
+    Message.find({ read: false })
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .select("name email subject _id")
+      .lean(),
+  ]);
+  const agg = aggregateResult[0] ?? { totalViews: 0, totalHearts: 0 };
   return {
-    stats: { posts: postCount, comments: commentCount, messages: messageCount, subscribers: subscriberCount },
+    stats: {
+      posts: postCount,
+      comments: commentCount,
+      messages: messageCount,
+      subscribers: subscriberCount,
+      totalViews: agg.totalViews as number,
+      totalHearts: agg.totalHearts as number,
+      approvedComments: approvedCommentCount,
+    },
     recentPosts: recentPosts as Array<{ _id: { toString(): string }; title: string; slug: string; views: number }>,
+    topPosts: topPosts as Array<{ _id: { toString(): string }; title: string; slug: string; views: number }>,
     recentComments: recentComments as unknown as Array<{
       _id: { toString(): string };
       name: string;
@@ -57,10 +84,13 @@ const statConfig = [
   { key: "comments" as const, label: "Pending Comments" },
   { key: "messages" as const, label: "Unread Messages" },
   { key: "subscribers" as const, label: "Subscribers" },
+  { key: "totalViews" as const, label: "Total Views" },
+  { key: "totalHearts" as const, label: "Total Hearts" },
+  { key: "approvedComments" as const, label: "Approved Comments" },
 ];
 
 export default async function AdminPage() {
-  const { stats, recentPosts, recentComments, recentMessages } = await getDashboardData();
+  const { stats, recentPosts, topPosts, recentComments, recentMessages } = await getDashboardData();
 
   return (
     <div>
@@ -92,7 +122,7 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {statConfig.map(({ key, label }) => (
           <div key={key} className="relative border border-border p-6 group hover:border-foreground transition-colors duration-200">
             <CornerMark position="top-left" />
@@ -100,12 +130,43 @@ export default async function AdminPage() {
             <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-2">
               {label}
             </p>
-            <p className="font-serif text-3xl font-bold">{stats[key]}</p>
+            <p className="font-serif text-3xl font-bold">{stats[key].toLocaleString()}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
+              Top Posts by Views
+            </h2>
+            <Link
+              href="/admin/posts"
+              className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              See all →
+            </Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {topPosts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No posts yet.</p>
+            ) : (
+              topPosts.map((post) => (
+                <Link
+                  key={post._id.toString()}
+                  href={`/admin/posts/${post._id.toString()}`}
+                  className="flex items-center justify-between border border-border p-3 hover:border-foreground transition-colors"
+                >
+                  <span className="text-sm font-medium truncate">{post.title}</span>
+                  <span className="font-mono text-xs text-muted-foreground shrink-0 ml-2">
+                    {post.views.toLocaleString()}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-mono text-xs text-muted-foreground uppercase tracking-widest">
@@ -130,7 +191,7 @@ export default async function AdminPage() {
                 >
                   <span className="text-sm font-medium truncate">{post.title}</span>
                   <span className="font-mono text-xs text-muted-foreground shrink-0 ml-2">
-                    {post.views} views
+                    {post.views.toLocaleString()} views
                   </span>
                 </Link>
               ))

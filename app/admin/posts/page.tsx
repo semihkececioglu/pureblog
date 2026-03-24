@@ -7,7 +7,7 @@ import Category from "@/models/Category";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import Link from "next/link";
 import { PostsTable } from "./posts-table";
 
@@ -70,12 +70,20 @@ export default async function AdminPostsPage({
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-serif text-3xl font-bold tracking-tight">Posts</h1>
-        <Button>
-          <Link href="/admin/posts/new" className="flex items-center gap-2">
-            <Plus width={16} height={16} />
-            New Post
+        <div className="flex items-center gap-2">
+          <Link href="/api/admin/posts/export">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <Download width={14} height={14} />
+              Export CSV
+            </Button>
           </Link>
-        </Button>
+          <Button>
+            <Link href="/admin/posts/new" className="flex items-center gap-2">
+              <Plus width={16} height={16} />
+              New Post
+            </Link>
+          </Button>
+        </div>
       </div>
       <Suspense>
         <PostsTable posts={posts} categories={categories} totalCount={total} />
