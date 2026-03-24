@@ -194,7 +194,7 @@ export function PostsTable({
               <Button
                 variant="ghost"
                 size="icon"
-                className="min-h-[44px] min-w-[44px] shrink-0"
+                className="shrink-0"
                 aria-label="Actions"
                 onClick={() => setDrawerPost(post)}
               >
