@@ -68,7 +68,9 @@ export function MobileBottomBar() {
                   >
                     <span
                       className={`text-sm font-medium ${
-                        isActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
+                        isActive
+                          ? "text-foreground"
+                          : "text-muted-foreground group-hover:text-foreground"
                       } transition-colors`}
                     >
                       {link.label}
@@ -84,15 +86,15 @@ export function MobileBottomBar() {
 
       {/* Bottom pill bar */}
       <div className="md:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-        <div className="flex items-center gap-1 bg-background/90 backdrop-blur-md border border-border shadow-lg rounded-full px-2 py-2">
+        <div className="flex items-center gap-1.5 bg-background border-2 border-border shadow-xl rounded-lg px-1.5 py-1.5">
           {/* Search */}
           <button
             aria-label="Search"
             onClick={openPalette}
-            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/70 transition-colors"
           >
             <Search className="w-4 h-4 shrink-0" />
-            <span className="text-xs font-mono text-muted-foreground/70">Search...</span>
+            <span className="text-xs font-mono font-medium">Search...</span>
           </button>
 
           {/* Divider */}
@@ -101,8 +103,17 @@ export function MobileBottomBar() {
           {/* Hamburger / Close */}
           <button
             aria-label="Toggle menu"
-            onClick={() => setMenuOpen((prev) => !prev)}
-            className="flex items-center justify-center w-9 h-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            onClick={() => {
+              if (typeof navigator !== "undefined" && navigator.vibrate) {
+                navigator.vibrate(8);
+              }
+              setMenuOpen((prev) => !prev);
+            }}
+            className={`flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${
+              menuOpen
+                ? "bg-foreground text-background"
+                : "bg-muted text-foreground hover:bg-muted/70"
+            }`}
           >
             <AnimatePresence mode="wait" initial={false}>
               {menuOpen ? (

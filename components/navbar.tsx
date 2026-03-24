@@ -9,6 +9,12 @@ import { StripedPattern } from "@/components/magicui/striped-pattern";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCommandPalette } from "@/components/command-palette";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TopCategory {
   _id: string;
@@ -195,32 +201,44 @@ export function Navbar({ siteName = "Pureblog", categories = [] }: { siteName?: 
         </ul>
 
         {/* Actions */}
-        <div className="flex items-center gap-1">
-          {/* Search — desktop only */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Search"
-            title="Search (Ctrl+K)"
-            className="relative group hidden md:flex"
-            onClick={openPalette}
-          >
-            <Search width={16} height={16} />
-            <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 hidden group-hover:flex items-center gap-1 bg-popover border border-border text-[10px] text-muted-foreground px-1.5 py-0.5 rounded whitespace-nowrap shadow-sm pointer-events-none z-50">
-              <kbd className="font-mono">⌘K</kbd>
-            </span>
-          </Button>
+        <TooltipProvider>
+          <div className="flex items-center gap-1">
+            {/* Search — desktop only */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Search"
+                  className="hidden md:flex"
+                  onClick={openPalette}
+                >
+                  <Search width={16} height={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="flex items-center gap-1.5">
+                <span>Search</span>
+                <kbd className="font-mono text-[10px] bg-muted border border-border rounded px-1 py-0.5 leading-none">⌘</kbd>
+                <kbd className="font-mono text-[10px] bg-muted border border-border rounded px-1 py-0.5 leading-none">K</kbd>
+              </TooltipContent>
+            </Tooltip>
 
-          {/* Bookmarks — always visible */}
-          <Link href="/bookmarks" title="Bookmarks">
-            <Button variant="ghost" size="icon" aria-label="Bookmarks">
-              <Bookmark width={16} height={16} />
-            </Button>
-          </Link>
+            {/* Bookmarks — always visible */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/bookmarks">
+                  <Button variant="ghost" size="icon" aria-label="Bookmarks">
+                    <Bookmark width={16} height={16} />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Bookmarks</TooltipContent>
+            </Tooltip>
 
-          {/* Theme toggle — always visible */}
-          <ThemeToggle />
-        </div>
+            {/* Theme toggle — always visible */}
+            <ThemeToggle />
+          </div>
+        </TooltipProvider>
       </nav>
 
       <div className="relative h-2 overflow-hidden border-y border-border">

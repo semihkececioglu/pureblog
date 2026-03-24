@@ -5,6 +5,12 @@ import { useSound } from "@/hooks/use-sound";
 import { switch005Sound } from "@/lib/switch-005";
 import { switch006Sound } from "@/lib/switch-006";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function ThemeIcon() {
   return (
@@ -65,13 +71,22 @@ export function ThemeToggle() {
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label="Toggle theme"
-      onClick={toggle}
-    >
-      <ThemeIcon />
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Toggle theme"
+            onClick={toggle}
+          >
+            <ThemeIcon />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          {resolvedTheme === "dark" ? "Switch to light" : "Switch to dark"}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

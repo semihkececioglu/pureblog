@@ -61,6 +61,7 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
   const [drawerComment, setDrawerComment] = useState<CommentWithPost | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
 
   const search = searchParams.get("q") ?? "";
   const statusFilter = (searchParams.get("status") ?? "all") as StatusFilter;
@@ -231,7 +232,7 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
           <Button size="sm" variant="outline" disabled={bulkProcessing} onClick={() => bulkUpdateStatus("rejected")} className="flex items-center gap-1.5">
             <X width={12} height={12} /> Reject
           </Button>
-          <Button size="sm" variant="destructive" disabled={bulkProcessing} onClick={bulkDelete} className="flex items-center gap-1.5">
+          <Button size="sm" variant="destructive" disabled={bulkProcessing} onClick={() => setBulkDeleteConfirm(true)} className="flex items-center gap-1.5">
             <Trash2 width={12} height={12} /> Delete
           </Button>
           <button onClick={() => setSelectedIds(new Set())} className="ml-auto font-mono text-xs text-muted-foreground hover:text-foreground transition-colors">
@@ -299,7 +300,7 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
                     → {comment.postId.title}
                   </Link>
                 )}
-                <p className="text-sm text-muted-foreground">{comment.content}</p>
+                <p className="text-sm text-muted-foreground break-all">{comment.content}</p>
               </div>
 
               {/* Desktop: dropdown */}
@@ -390,6 +391,24 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Bulk delete dialog */}
+      <Dialog open={bulkDeleteConfirm} onOpenChange={(open: boolean) => { if (!open) setBulkDeleteConfirm(false); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {selectedIds.size} Comment{selectedIds.size > 1 ? "s" : ""}</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. {selectedIds.size} comment{selectedIds.size > 1 ? "s" : ""} will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkDeleteConfirm(false)}>Cancel</Button>
+            <Button variant="destructive" disabled={bulkProcessing} onClick={() => { setBulkDeleteConfirm(false); bulkDelete(); }}>
+              {bulkProcessing ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete dialog */}
       <Dialog open={!!deleteId} onOpenChange={(open: boolean) => { if (!open) setDeleteId(null); }}>
