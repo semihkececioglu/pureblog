@@ -49,7 +49,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     const data = schema.parse(body);
     await connectDB();
     const settings = await Settings.findOneAndUpdate({}, { $set: data }, { new: true, upsert: true });
-    revalidateTag("settings");
+    (revalidateTag as unknown as (tag: string) => void)("settings");
     return NextResponse.json({ data: settings, error: null });
   } catch {
     return NextResponse.json({ data: null, error: "Failed to save settings" }, { status: 500 });
