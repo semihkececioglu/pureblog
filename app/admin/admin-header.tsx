@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { AdminSidebarMobile } from "./admin-sidebar";
 import { signOutAction } from "./actions";
 
@@ -44,6 +45,10 @@ export function AdminHeader({
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
+          <Link href="/" target="_blank" className={buttonVariants({ variant: "ghost", size: "default" }) + " flex items-center gap-2"}>
+            <ExternalLink width={16} height={16} />
+            <span className="hidden sm:inline">View Blog</span>
+          </Link>
           <form action={signOutAction}>
             <Button variant="ghost" size="default" type="submit" aria-label="Sign out">
               <LogOut width={16} height={16} />
