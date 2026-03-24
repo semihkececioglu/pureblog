@@ -28,6 +28,7 @@ export default async function AdminSettingsPage() {
           footerText: settings.footerText,
           metaDescription: settings.metaDescription,
           ogImage: settings.ogImage,
+          favicon: settings.favicon,
           googleAnalyticsId: settings.googleAnalyticsId,
         }}
       />
