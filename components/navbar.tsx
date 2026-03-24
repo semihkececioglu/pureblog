@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, ChevronDown, ArrowRight, Bookmark } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { StripedPattern } from "@/components/magicui/striped-pattern";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -205,16 +205,18 @@ export function Navbar({ siteName = "Pureblog", categories = [] }: { siteName?: 
           <div className="flex items-center gap-1">
             {/* Search — desktop only */}
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Search"
-                  className="hidden md:flex"
-                  onClick={openPalette}
-                >
-                  <Search width={16} height={16} />
-                </Button>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Search"
+                    className="hidden md:flex"
+                    onClick={openPalette}
+                  />
+                }
+              >
+                <Search width={16} height={16} />
               </TooltipTrigger>
               <TooltipContent side="bottom" className="flex items-center gap-1.5">
                 <span>Search</span>
@@ -225,12 +227,16 @@ export function Navbar({ siteName = "Pureblog", categories = [] }: { siteName?: 
 
             {/* Bookmarks — always visible */}
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href="/bookmarks">
-                  <Button variant="ghost" size="icon" aria-label="Bookmarks">
-                    <Bookmark width={16} height={16} />
-                  </Button>
-                </Link>
+              <TooltipTrigger
+                render={
+                  <Link
+                    href="/bookmarks"
+                    className={buttonVariants({ variant: "ghost", size: "icon" })}
+                    aria-label="Bookmarks"
+                  />
+                }
+              >
+                <Bookmark width={16} height={16} />
               </TooltipTrigger>
               <TooltipContent side="bottom">Bookmarks</TooltipContent>
             </Tooltip>

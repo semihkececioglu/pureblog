@@ -73,15 +73,17 @@ export function ThemeToggle() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Toggle theme"
-            onClick={toggle}
-          >
-            <ThemeIcon />
-          </Button>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Toggle theme"
+              onClick={toggle}
+            />
+          }
+        >
+          <ThemeIcon />
         </TooltipTrigger>
         <TooltipContent side="bottom">
           {resolvedTheme === "dark" ? "Switch to light" : "Switch to dark"}
