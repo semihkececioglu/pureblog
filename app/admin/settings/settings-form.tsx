@@ -40,6 +40,7 @@ const schema = z.object({
   footerText: z.string().optional(),
   metaDescription: z.string().max(160, "Max 160 characters").optional(),
   ogImage: z.string().optional(),
+  favicon: z.string().optional(),
   googleAnalyticsId: z.string().optional(),
 });
 
@@ -81,6 +82,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
       footerText: initialData.footerText ?? "",
       metaDescription: initialData.metaDescription ?? "",
       ogImage: initialData.ogImage ?? "",
+      favicon: initialData.favicon ?? "",
       googleAnalyticsId: initialData.googleAnalyticsId ?? "",
     },
   });
@@ -88,6 +90,7 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
   const metaDescription = watch("metaDescription") ?? "";
   const welcomeDescription = watch("welcomeDescription") ?? "";
   const ogImage = watch("ogImage") ?? "";
+  const favicon = watch("favicon") ?? "";
 
   async function onSubmit(data: FormData) {
     try {
@@ -243,6 +246,27 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
                   src={ogImage}
                   alt="OG image preview"
                   className="max-h-32 max-w-full border border-border object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="favicon">Favicon URL</Label>
+            <Input
+              id="favicon"
+              {...register("favicon")}
+              placeholder="https://example.com/favicon.png"
+              type="url"
+            />
+            {favicon && (
+              <div className="mt-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={favicon}
+                  alt="Favicon preview"
+                  className="size-8 border border-border object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                   onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
                 />

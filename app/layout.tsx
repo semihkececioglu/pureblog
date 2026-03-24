@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Prata, DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { getCachedSettings } from "@/lib/cache";
 import "./globals.css";
 
 const prata = Prata({
@@ -19,10 +20,16 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-export const metadata: Metadata = {
-  title: "PureBlog",
-  description: "A minimal blog",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getCachedSettings();
+  return {
+    title: settings.siteName || "PureBlog",
+    description: settings.metaDescription || "A minimal blog",
+    ...(settings.favicon && {
+      icons: { icon: settings.favicon },
+    }),
+  };
+}
 
 export default function RootLayout({
   children,

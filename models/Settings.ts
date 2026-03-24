@@ -17,6 +17,7 @@ const SettingsSchema = new Schema<ISettings>(
     footerText: { type: String, default: "" },
     metaDescription: { type: String, default: "" },
     ogImage: { type: String, default: "" },
+    favicon: { type: String, default: "" },
     googleAnalyticsId: { type: String, default: "" },
   },
   { timestamps: true },

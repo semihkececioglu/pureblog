@@ -16,6 +16,7 @@ export interface ISettings {
   footerText?: string;
   metaDescription?: string;
   ogImage?: string;
+  favicon?: string;
   googleAnalyticsId?: string;
   createdAt: Date;
   updatedAt: Date;

@@ -22,6 +22,7 @@ const schema = z.object({
   footerText: z.string().optional(),
   metaDescription: z.string().optional(),
   ogImage: z.string().optional(),
+  favicon: z.string().optional(),
   googleAnalyticsId: z.string().optional(),
 });
 
