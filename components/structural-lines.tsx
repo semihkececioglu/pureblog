@@ -35,7 +35,7 @@ export function CornerMark({
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      className="absolute pointer-events-none text-muted-foreground/60"
+      className="absolute pointer-events-none text-muted-foreground/60 group-hover:text-foreground transition-colors duration-200"
       style={cornerStyles[position]}
       aria-hidden="true"
     >

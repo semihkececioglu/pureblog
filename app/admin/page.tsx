@@ -94,7 +94,7 @@ export default async function AdminPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {statConfig.map(({ key, label }) => (
-          <div key={key} className="relative border border-border p-6">
+          <div key={key} className="relative border border-border p-6 group hover:border-foreground transition-colors duration-200">
             <CornerMark position="top-left" />
             <CornerMark position="bottom-right" />
             <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-2">
