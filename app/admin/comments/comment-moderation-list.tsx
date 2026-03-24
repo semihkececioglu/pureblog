@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { IComment } from "@/types";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -14,7 +14,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Check, X, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Check, X, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { toast } from "sonner";
 
 type CommentWithPost = IComment & {
   _id: string;
@@ -38,8 +52,8 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
   const [comments, setComments] = useState(initialComments);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [drawerComment, setDrawerComment] = useState<CommentWithPost | null>(null);
 
-  // Read state from URL
   const search = searchParams.get("q") ?? "";
   const statusFilter = (searchParams.get("status") ?? "all") as StatusFilter;
   const sortDir = (searchParams.get("sort") ?? "desc") as SortDir;
@@ -58,22 +72,33 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
   );
 
   async function updateStatus(id: string, status: "approved" | "rejected"): Promise<void> {
-    await fetch(`/api/admin/comments/${id}`, {
+    const res = await fetch(`/api/admin/comments/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    setComments((prev) => prev.map((c) => (c._id === id ? { ...c, status } : c)));
+    if (res.ok) {
+      setComments((prev) => prev.map((c) => (c._id === id ? { ...c, status } : c)));
+      toast.success(status === "approved" ? "Comment approved." : "Comment rejected.");
+    } else {
+      toast.error("Failed to update comment.");
+    }
   }
 
   async function handleDelete(): Promise<void> {
     if (!deleteId) return;
     setDeleting(true);
-    await fetch(`/api/admin/comments/${deleteId}`, { method: "DELETE" });
-    setComments((prev) => prev.filter((c) => c._id !== deleteId));
+    const res = await fetch(`/api/admin/comments/${deleteId}`, { method: "DELETE" });
     setDeleting(false);
-    setDeleteId(null);
-    router.refresh();
+    if (res.ok) {
+      setComments((prev) => prev.filter((c) => c._id !== deleteId));
+      setDeleteId(null);
+      router.refresh();
+      toast.success("Comment deleted.");
+    } else {
+      setDeleteId(null);
+      toast.error("Failed to delete comment.");
+    }
   }
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
@@ -84,6 +109,27 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
     { key: "approved", label: "Approved" },
     { key: "rejected", label: "Rejected" },
   ];
+
+  function ActionItems({ comment, onClose }: { comment: CommentWithPost; onClose?: () => void }) {
+    return (
+      <>
+        {comment.status !== "approved" && (
+          <DropdownMenuItem onClick={() => { updateStatus(comment._id, "approved"); onClose?.(); }}>
+            <Check width={14} height={14} /> Approve
+          </DropdownMenuItem>
+        )}
+        {comment.status !== "rejected" && (
+          <DropdownMenuItem onClick={() => { updateStatus(comment._id, "rejected"); onClose?.(); }}>
+            <X width={14} height={14} /> Reject
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onClick={() => { setDeleteId(comment._id); onClose?.(); }}>
+          <Trash2 width={14} height={14} /> Delete
+        </DropdownMenuItem>
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -164,39 +210,29 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
                 )}
                 <p className="text-sm text-muted-foreground">{comment.content}</p>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {comment.status === "pending" && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="min-h-[44px] min-w-[44px]"
-                      aria-label="Approve"
-                      onClick={() => updateStatus(comment._id, "approved")}
-                    >
-                      <Check width={16} height={16} />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="min-h-[44px] min-w-[44px]"
-                      aria-label="Reject"
-                      onClick={() => updateStatus(comment._id, "rejected")}
-                    >
-                      <X width={16} height={16} />
-                    </Button>
-                  </>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="min-h-[44px] min-w-[44px]"
-                  aria-label="Delete"
-                  onClick={() => setDeleteId(comment._id)}
-                >
-                  <Trash2 width={16} height={16} />
-                </Button>
+
+              {/* Desktop: dropdown */}
+              <div className="hidden md:block shrink-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label="Actions">
+                    <MoreHorizontal width={14} height={14} />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <ActionItems comment={comment} />
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
+              {/* Mobile: opens action drawer */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden shrink-0"
+                aria-label="Actions"
+                onClick={() => setDrawerComment(comment)}
+              >
+                <MoreHorizontal width={18} height={18} />
+              </Button>
             </div>
           ))}
         </div>
@@ -230,6 +266,41 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
         </div>
       )}
 
+      {/* Mobile: action drawer */}
+      <Sheet open={!!drawerComment} onOpenChange={(open) => { if (!open) setDrawerComment(null); }}>
+        <SheetContent side="bottom" showCloseButton={false} className="gap-1">
+          <SheetHeader className="px-4 pt-4 pb-0">
+            <SheetTitle className="text-left text-sm font-medium leading-snug">{drawerComment?.name}</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col px-4 pb-4">
+            {drawerComment?.status !== "approved" && (
+              <button
+                onClick={() => { updateStatus(drawerComment!._id, "approved"); setDrawerComment(null); }}
+                className="flex items-center gap-3 py-3 text-sm hover:bg-muted transition-colors rounded-md px-2"
+              >
+                <Check width={16} height={16} /> Approve
+              </button>
+            )}
+            {drawerComment?.status !== "rejected" && (
+              <button
+                onClick={() => { updateStatus(drawerComment!._id, "rejected"); setDrawerComment(null); }}
+                className="flex items-center gap-3 py-3 text-sm hover:bg-muted transition-colors rounded-md px-2"
+              >
+                <X width={16} height={16} /> Reject
+              </button>
+            )}
+            <hr className="border-border my-1" />
+            <button
+              onClick={() => { setDeleteId(drawerComment!._id); setDrawerComment(null); }}
+              className="flex items-center gap-3 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors rounded-md px-2"
+            >
+              <Trash2 width={16} height={16} /> Delete
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Delete dialog */}
       <Dialog open={!!deleteId} onOpenChange={(open: boolean) => { if (!open) setDeleteId(null); }}>
         <DialogContent>
           <DialogHeader>
