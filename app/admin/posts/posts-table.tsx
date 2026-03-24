@@ -309,27 +309,27 @@ export function PostsTable({
 
       {/* Mobile Action Drawer */}
       <Sheet open={!!drawerPost} onOpenChange={(open) => { if (!open) setDrawerPost(null); }}>
-        <SheetContent side="bottom">
-          <SheetHeader className="mb-2">
-            <SheetTitle className="text-left text-sm font-medium truncate">{drawerPost?.title}</SheetTitle>
+        <SheetContent side="bottom" showCloseButton={false} className="gap-1">
+          <SheetHeader className="px-4 pt-4 pb-0">
+            <SheetTitle className="text-left text-sm font-medium leading-snug">{drawerPost?.title}</SheetTitle>
           </SheetHeader>
-          <div className="flex flex-col">
+          <div className="flex flex-col px-4 pb-4">
             <button
               onClick={() => { router.push(`/admin/posts/${drawerPost?._id}`); setDrawerPost(null); }}
-              className="flex items-center gap-3 px-2 py-3 text-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-3 py-3 text-sm hover:bg-muted transition-colors rounded-md px-2"
             >
               <Pencil width={16} height={16} /> Edit
             </button>
             <button
               onClick={() => { window.open(`/blog/${drawerPost?.slug}`, "_blank"); setDrawerPost(null); }}
-              className="flex items-center gap-3 px-2 py-3 text-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-3 py-3 text-sm hover:bg-muted transition-colors rounded-md px-2"
             >
               <ExternalLink width={16} height={16} /> View on site
             </button>
             <hr className="border-border my-1" />
             <button
               onClick={() => { setDeleteId(drawerPost!._id); setDrawerPost(null); }}
-              className="flex items-center gap-3 px-2 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              className="flex items-center gap-3 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors rounded-md px-2"
             >
               <Trash2 width={16} height={16} /> Delete
             </button>
