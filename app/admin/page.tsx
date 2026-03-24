@@ -64,8 +64,8 @@ export default async function AdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="font-serif text-3xl font-bold tracking-tight">Dashboard</h1>
+      <div className="mb-8">
+        <h1 className="font-serif text-3xl font-bold tracking-tight mb-3">Dashboard</h1>
         <div className="flex items-center gap-2">
           <Button size="sm">
             <Link href="/admin/posts/new" className="flex items-center gap-2">
