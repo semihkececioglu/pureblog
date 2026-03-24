@@ -10,6 +10,7 @@ const PAGE_SIZE = 10;
 
 interface SearchParams {
   q?: string;
+  status?: string;
   page?: string;
 }
 
@@ -21,6 +22,7 @@ async function getSubscribers(sp: SearchParams) {
 
   const filter: Record<string, unknown> = {};
   if (sp.q) filter.email = { $regex: sp.q, $options: "i" };
+  if (sp.status && sp.status !== "all") filter.status = sp.status;
 
   const [subscribers, total] = await Promise.all([
     Subscriber.find(filter).sort({ createdAt: -1 }).skip(skip).limit(PAGE_SIZE).lean(),
