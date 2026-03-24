@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { IMessage } from "@/types";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -13,8 +13,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MailOpen, Trash2, Reply, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { MailOpen, Trash2, Reply, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 type MessageRow = IMessage & { _id: string };
 type ReadFilter = "all" | "unread" | "read";
@@ -37,6 +51,11 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
   const [replyId, setReplyId] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
   const [replying, setReplying] = useState(false);
+  const [drawerMessage, setDrawerMessage] = useState<MessageRow | null>(null);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
   // Read state from URL
   const search = searchParams.get("q") ?? "";
@@ -56,8 +75,13 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
   );
 
   async function markAsRead(id: string): Promise<void> {
-    await fetch(`/api/admin/messages/${id}/read`, { method: "PATCH" });
-    setMessages((prev) => prev.map((m) => (m._id === id ? { ...m, read: true } : m)));
+    const res = await fetch(`/api/admin/messages/${id}/read`, { method: "PATCH" });
+    if (res.ok) {
+      setMessages((prev) => prev.map((m) => (m._id === id ? { ...m, read: true } : m)));
+      toast.success("Marked as read.");
+    } else {
+      toast.error("Failed to mark as read.");
+    }
   }
 
   async function handleReply(): Promise<void> {
@@ -72,6 +96,9 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
       setMessages((prev) => prev.map((m) => (m._id === replyId ? { ...m, read: true } : m)));
       setReplyId(null);
       setReplyBody("");
+      toast.success("Reply sent.");
+    } else {
+      toast.error("Failed to send reply.");
     }
     setReplying(false);
   }
@@ -79,16 +106,21 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
   async function handleDelete(): Promise<void> {
     if (!deleteId) return;
     setDeleting(true);
-    await fetch(`/api/admin/messages/${deleteId}`, { method: "DELETE" });
-    setMessages((prev) => prev.filter((m) => m._id !== deleteId));
-    if (expanded === deleteId) setExpanded(null);
+    const res = await fetch(`/api/admin/messages/${deleteId}`, { method: "DELETE" });
     setDeleting(false);
-    setDeleteId(null);
-    router.refresh();
+    if (res.ok) {
+      setMessages((prev) => prev.filter((m) => m._id !== deleteId));
+      if (expanded === deleteId) setExpanded(null);
+      setDeleteId(null);
+      router.refresh();
+      toast.success("Message deleted.");
+    } else {
+      setDeleteId(null);
+      toast.error("Failed to delete message.");
+    }
   }
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
-  const paginated = messages;
 
   const filterLabels: { key: ReadFilter; label: string }[] = [
     { key: "all", label: "All" },
@@ -119,11 +151,11 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
         </div>
       </div>
 
-      {paginated.length === 0 ? (
+      {messages.length === 0 ? (
         <p className="text-sm text-muted-foreground">No messages found.</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {paginated.map((message) => (
+          {messages.map((message) => (
             <div
               key={message._id}
               className={`border p-4 transition-colors ${
@@ -153,34 +185,39 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
                   <span className="font-mono text-xs text-muted-foreground">
                     {new Date(message.createdAt).toLocaleDateString()}
                   </span>
+
+                  {/* Desktop: dropdown */}
+                  <div className="hidden md:block">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label="Actions">
+                        <MoreHorizontal width={14} height={14} />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => { setReplyId(message._id); setReplyBody(""); }}>
+                          <Reply width={14} height={14} /> Reply
+                        </DropdownMenuItem>
+                        {!message.read && (
+                          <DropdownMenuItem onClick={() => markAsRead(message._id)}>
+                            <MailOpen width={14} height={14} /> Mark as read
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(message._id)}>
+                          <Trash2 width={14} height={14} /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {/* Mobile: opens action drawer */}
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="min-h-[44px] min-w-[44px]"
-                    aria-label="Reply"
-                    onClick={() => { setReplyId(message._id); setReplyBody(""); }}
+                    className="md:hidden shrink-0"
+                    aria-label="Actions"
+                    onClick={() => setDrawerMessage(message)}
                   >
-                    <Reply width={16} height={16} />
-                  </Button>
-                  {!message.read && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="min-h-[44px] min-w-[44px]"
-                      aria-label="Mark as read"
-                      onClick={() => markAsRead(message._id)}
-                    >
-                      <MailOpen width={16} height={16} />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="min-h-[44px] min-w-[44px]"
-                    aria-label="Delete"
-                    onClick={() => setDeleteId(message._id)}
-                  >
-                    <Trash2 width={16} height={16} />
+                    <MoreHorizontal width={18} height={18} />
                   </Button>
                 </div>
               </div>
@@ -221,6 +258,38 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
           </div>
         </div>
       )}
+
+      {/* Mobile: action drawer */}
+      <Sheet open={!!drawerMessage} onOpenChange={(open) => { if (!open) setDrawerMessage(null); }}>
+        <SheetContent side="bottom" showCloseButton={false} className="gap-1">
+          <SheetHeader className="px-4 pt-4 pb-0">
+            <SheetTitle className="text-left text-sm font-medium leading-snug">{drawerMessage?.name}</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col px-4 pb-4">
+            <button
+              onClick={() => { setReplyId(drawerMessage!._id); setReplyBody(""); setDrawerMessage(null); }}
+              className="flex items-center gap-3 py-3 text-sm hover:bg-muted transition-colors rounded-md px-2"
+            >
+              <Reply width={16} height={16} /> Reply
+            </button>
+            {!drawerMessage?.read && (
+              <button
+                onClick={() => { markAsRead(drawerMessage!._id); setDrawerMessage(null); }}
+                className="flex items-center gap-3 py-3 text-sm hover:bg-muted transition-colors rounded-md px-2"
+              >
+                <MailOpen width={16} height={16} /> Mark as read
+              </button>
+            )}
+            <hr className="border-border my-1" />
+            <button
+              onClick={() => { setDeleteId(drawerMessage!._id); setDrawerMessage(null); }}
+              className="flex items-center gap-3 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors rounded-md px-2"
+            >
+              <Trash2 width={16} height={16} /> Delete
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={!!replyId} onOpenChange={(open: boolean) => { if (!open) { setReplyId(null); setReplyBody(""); } }}>
         <DialogContent>
