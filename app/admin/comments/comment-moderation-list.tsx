@@ -173,7 +173,9 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
           {comments.map((comment) => (
             <div
               key={comment._id}
-              className="border border-border p-4 flex items-start justify-between gap-4"
+              className={`border p-4 flex items-start justify-between gap-4 ${
+                comment.status === "pending" ? "border-foreground" : "border-border opacity-60"
+              }`}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
