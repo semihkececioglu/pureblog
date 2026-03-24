@@ -31,6 +31,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Trash2, Pencil, MoreHorizontal, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 const schema = z.object({
   name: z.string().min(2),
@@ -92,6 +93,9 @@ export function CategoryList({ initialCategories }: CategoryListProps) {
         setFormSheet(null);
         reset();
         router.refresh();
+        toast.success("Category updated.");
+      } else {
+        toast.error("Failed to update category.");
       }
     } else {
       const res = await fetch("/api/admin/categories", {
@@ -105,6 +109,9 @@ export function CategoryList({ initialCategories }: CategoryListProps) {
         setFormSheet(null);
         reset();
         router.refresh();
+        toast.success("Category created.");
+      } else {
+        toast.error("Failed to create category.");
       }
     }
   }
@@ -112,10 +119,16 @@ export function CategoryList({ initialCategories }: CategoryListProps) {
   async function handleDelete(): Promise<void> {
     if (!deleteId) return;
     setDeleting(true);
-    await fetch(`/api/admin/categories/${deleteId}`, { method: "DELETE" });
-    setCategories((prev) => prev.filter((c) => c._id !== deleteId));
+    const res = await fetch(`/api/admin/categories/${deleteId}`, { method: "DELETE" });
     setDeleting(false);
-    setDeleteId(null);
+    if (res.ok) {
+      setCategories((prev) => prev.filter((c) => c._id !== deleteId));
+      setDeleteId(null);
+      toast.success("Category deleted.");
+    } else {
+      setDeleteId(null);
+      toast.error("Failed to delete category.");
+    }
   }
 
   const categoryForm = (
