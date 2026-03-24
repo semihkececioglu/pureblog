@@ -28,7 +28,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Pencil, Trash2, ExternalLink, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Download } from "lucide-react";
 
 type PostRow = IPost & { category: ICategory; _id: string };
 type SortKey = "title" | "views" | "createdAt";
@@ -89,6 +89,10 @@ export function PostsTable({
     ? "All Categories"
     : categories.find((c) => c.slug === categoryFilter)?.name ?? "All Categories";
 
+  function handleExport() {
+    window.open("/api/admin/posts/export", "_blank");
+  }
+
   async function handleDelete() {
     if (!deleteId) return;
     setDeleting(true);
@@ -101,7 +105,8 @@ export function PostsTable({
   return (
     <div className="flex flex-col gap-4">
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
         <Input
           placeholder="Search by title..."
           defaultValue={search}
@@ -138,6 +143,11 @@ export function PostsTable({
             </SelectContent>
           </Select>
         )}
+        </div>
+        <Button variant="outline" size="sm" onClick={handleExport} className="flex items-center gap-2">
+          <Download width={14} height={14} />
+          Export CSV
+        </Button>
       </div>
 
       {/* Mobile cards */}

@@ -54,6 +54,7 @@ export async function generateMetadata({
   const url = `${siteUrl}/blog/${post.slug}`;
   const ogImage =
     post.coverImage ??
+    settings.ogImage ??
     `${siteUrl}/api/og?title=${encodeURIComponent(post.title)}`;
 
   return {
