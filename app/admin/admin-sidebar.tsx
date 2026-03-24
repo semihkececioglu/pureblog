@@ -65,7 +65,7 @@ function SidebarNavContent({ onNavClick }: { onNavClick?: () => void }) {
 
 export function AdminSidebarDesktop() {
   return (
-    <aside className="hidden md:flex w-56 border-r border-border flex-col shrink-0">
+    <aside className="hidden md:flex w-56 border-r border-border flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">
       <div className="h-14 flex items-center px-4 border-b border-border">
         <Link
           href="/"
