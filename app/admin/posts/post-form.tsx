@@ -26,7 +26,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { ICategory, IPostSeries } from "@/types";
-import { CalendarIcon, ImageIcon, X, RotateCcw } from "lucide-react";
+import { CalendarIcon, ImageIcon, X } from "lucide-react";
 
 const schema = z.object({
   title: z.string().min(3),
@@ -46,6 +46,7 @@ type FormData = z.infer<typeof schema>;
 export interface PostFormProps {
   categories: ICategory[];
   seriesList: IPostSeries[];
+  existingTags: string[];
   initialData?: {
     _id: string;
     title: string;
@@ -161,8 +162,8 @@ function DateTimePicker({ value, onChange }: { value: string; onChange: (v: stri
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
-      <div className="px-4 py-2.5 bg-muted/40 border-b border-border">
+    <div className="border border-border rounded-lg">
+      <div className="px-4 py-2.5 bg-muted/40 border-b border-border rounded-t-lg">
         <span className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
           {title}
         </span>
@@ -187,20 +188,65 @@ function Field({ label, error, children, hint }: { label: string; error?: string
   );
 }
 
-const LOCAL_DRAFT_KEY = "draft-new";
-const LOCAL_DRAFT_TTL = 24 * 60 * 60 * 1000; // 24h
+function TagsInput({ value, onChange, existingTags }: { value: string; onChange: (v: string) => void; existingTags: string[] }) {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-export function PostForm({ categories, seriesList, initialData }: PostFormProps) {
+  const parts = value.split(",");
+  const currentPartial = parts[parts.length - 1].trim().toLowerCase();
+  const alreadyAdded = parts.slice(0, -1).map((p) => p.trim().toLowerCase());
+
+  const suggestions = currentPartial.length > 0
+    ? existingTags.filter((tag) =>
+        tag.toLowerCase().includes(currentPartial) &&
+        !alreadyAdded.includes(tag.toLowerCase())
+      )
+    : [];
+
+  function selectSuggestion(tag: string) {
+    const existing = parts.slice(0, -1).map((p) => p.trim()).filter(Boolean);
+    onChange([...existing, tag].join(", ") + ", ");
+    setShowDropdown(false);
+    inputRef.current?.focus();
+  }
+
+  return (
+    <div className="relative">
+      <Input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setShowDropdown(true); }}
+        onFocus={() => setShowDropdown(true)}
+        onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+        placeholder="react, nextjs, typescript"
+      />
+      {showDropdown && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 border border-border bg-background rounded-md shadow-md max-h-48 overflow-y-auto">
+          {suggestions.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              className="w-full px-3 py-2 text-sm text-left hover:bg-muted transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => selectSuggestion(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function PostForm({ categories, seriesList, existingTags, initialData }: PostFormProps) {
   const router = useRouter();
   const [content, setContent] = useState(initialData?.content ?? "");
   const [uploading, setUploading] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [showRecovery, setShowRecovery] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submitTypeRef = useRef<"draft" | "publish">("draft");
-  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const serverSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isNewPost = !initialData;
 
   const {
     register,
@@ -209,7 +255,6 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
     setValue,
     watch,
     getValues,
-    reset,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -226,35 +271,6 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
       seriesOrder: initialData?.seriesOrder?.toString() ?? "",
     },
   });
-
-  const formValues = watch();
-
-  // Check for localStorage recovery on new post page
-  useEffect(() => {
-    if (!isNewPost) return;
-    try {
-      const saved = localStorage.getItem(LOCAL_DRAFT_KEY);
-      if (!saved) return;
-      const parsed = JSON.parse(saved) as { timestamp: number };
-      if (Date.now() - parsed.timestamp < LOCAL_DRAFT_TTL) {
-        setShowRecovery(true);
-      } else {
-        localStorage.removeItem(LOCAL_DRAFT_KEY);
-      }
-    } catch { /* ignore */ }
-  }, [isNewPost]);
-
-  // localStorage autosave — fires 2s after last change
-  useEffect(() => {
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => {
-      try {
-        const key = initialData?._id ? `draft-${initialData._id}` : LOCAL_DRAFT_KEY;
-        localStorage.setItem(key, JSON.stringify({ ...formValues, content, timestamp: Date.now() }));
-      } catch { /* ignore */ }
-    }, 2000);
-    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
-  }, [formValues, content, initialData?._id]);
 
   // Server autosave — fires 8s after last change, existing posts only
   useEffect(() => {
@@ -277,34 +293,7 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
       }
     }, 8000);
     return () => { if (serverSaveTimer.current) clearTimeout(serverSaveTimer.current); };
-  }, [formValues, content, initialData?._id, getValues]);
-
-  function recoverDraft() {
-    try {
-      const saved = localStorage.getItem(LOCAL_DRAFT_KEY);
-      if (!saved) return;
-      const parsed = JSON.parse(saved) as FormData & { content: string };
-      reset({
-        title: parsed.title ?? "",
-        slug: parsed.slug ?? "",
-        excerpt: parsed.excerpt ?? "",
-        category: parsed.category ?? "",
-        tags: parsed.tags ?? "",
-        coverImage: parsed.coverImage ?? "",
-        featured: parsed.featured ?? false,
-        scheduledAt: parsed.scheduledAt ?? "",
-        series: parsed.series ?? "",
-        seriesOrder: parsed.seriesOrder ?? "",
-      });
-      if (parsed.content) setContent(parsed.content);
-      setShowRecovery(false);
-    } catch { /* ignore */ }
-  }
-
-  function discardDraft() {
-    localStorage.removeItem(LOCAL_DRAFT_KEY);
-    setShowRecovery(false);
-  }
+  }, [content, initialData?._id, getValues]);
 
   function generateSlug(title: string): string {
     return title
@@ -353,10 +342,6 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
     });
 
     if (res.ok) {
-      try {
-        localStorage.removeItem(LOCAL_DRAFT_KEY);
-        if (initialData?._id) localStorage.removeItem(`draft-${initialData._id}`);
-      } catch { /* ignore */ }
       router.push("/admin/posts");
     }
   }
@@ -365,24 +350,6 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
 
   return (
     <div className="flex flex-col gap-5 max-w-3xl">
-      {/* Recovery banner */}
-      {showRecovery && (
-        <div className="flex items-center justify-between gap-3 border border-yellow-400/50 bg-yellow-50 dark:bg-yellow-950/20 px-4 py-3 rounded-lg">
-          <p className="text-sm text-yellow-800 dark:text-yellow-200">
-            Unsaved draft found. Do you want to recover it?
-          </p>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button type="button" size="sm" variant="outline" onClick={recoverDraft} className="gap-1.5">
-              <RotateCcw className="w-3.5 h-3.5" />
-              Recover
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={discardDraft}>
-              Discard
-            </Button>
-          </div>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {/* Basic Info */}
         <FormSection title="Basic Info">
@@ -444,7 +411,13 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
               />
             </Field>
             <Field label="Tags" hint="Comma separated">
-              <Input {...register("tags")} placeholder="react, nextjs, typescript" />
+              <Controller
+                name="tags"
+                control={control}
+                render={({ field }) => (
+                  <TagsInput value={field.value} onChange={field.onChange} existingTags={existingTags} />
+                )}
+              />
             </Field>
           </FieldRow>
           <FieldRow>
@@ -473,14 +446,16 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
                 )}
               />
             </Field>
-            <Field label="Order in series" hint="Position within the series">
-              <Input
-                {...register("seriesOrder")}
-                type="number"
-                min={1}
-                placeholder="1"
-              />
-            </Field>
+            {watch("series") && watch("series") !== "__none__" && (
+              <Field label="Order in series" hint="Position within the series">
+                <Input
+                  {...register("seriesOrder")}
+                  type="number"
+                  min={1}
+                  placeholder="1"
+                />
+              </Field>
+            )}
           </FieldRow>
         </FormSection>
 
@@ -551,18 +526,18 @@ export function PostForm({ categories, seriesList, initialData }: PostFormProps)
           <Button
             type="submit"
             disabled={isSubmitting}
-            onClick={() => { submitTypeRef.current = "draft"; }}
+            onClick={() => { submitTypeRef.current = "publish"; }}
           >
-            {isSubmitting && submitTypeRef.current === "draft" ? "Saving..." : "Save Draft"}
+            {isSubmitting && submitTypeRef.current === "publish" ? "Publishing..." : "Publish"}
           </Button>
 
           <Button
             type="submit"
             variant="outline"
             disabled={isSubmitting}
-            onClick={() => { submitTypeRef.current = "publish"; }}
+            onClick={() => { submitTypeRef.current = "draft"; }}
           >
-            {isSubmitting && submitTypeRef.current === "publish" ? "Publishing..." : "Publish"}
+            {isSubmitting && submitTypeRef.current === "draft" ? "Saving..." : "Save Draft"}
           </Button>
 
           <Button type="button" variant="ghost" onClick={() => router.push("/admin/posts")}>

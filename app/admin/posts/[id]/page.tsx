@@ -14,10 +14,11 @@ interface PageProps {
 
 async function getData(id: string) {
   await connectDB();
-  const [rawPost, categories, seriesList] = await Promise.all([
+  const [rawPost, categories, seriesList, existingTags] = await Promise.all([
     Post.findById(id).lean(),
     Category.find().sort({ name: 1 }).lean(),
     PostSeries.find().sort({ name: 1 }).lean(),
+    Post.distinct("tags"),
   ]);
 
   const post = rawPost as Record<string, unknown> | null;
@@ -26,12 +27,13 @@ async function getData(id: string) {
     post: post ? (JSON.parse(JSON.stringify(post)) as Record<string, unknown>) : null,
     categories: JSON.parse(JSON.stringify(categories)) as (ICategory & { _id: string })[],
     seriesList: JSON.parse(JSON.stringify(seriesList)) as (IPostSeries & { _id: string })[],
+    existingTags: existingTags as string[],
   };
 }
 
 export default async function EditPostPage({ params }: PageProps) {
   const { id } = await params;
-  const { post, categories, seriesList } = await getData(id);
+  const { post, categories, seriesList, existingTags } = await getData(id);
 
   if (!post) notFound();
 
@@ -57,7 +59,7 @@ export default async function EditPostPage({ params }: PageProps) {
       <h1 className="font-serif text-3xl font-bold tracking-tight mb-8">
         Edit Post
       </h1>
-      <PostForm categories={categories} seriesList={seriesList} initialData={initialData} />
+      <PostForm categories={categories} seriesList={seriesList} existingTags={existingTags} initialData={initialData} />
     </div>
   );
 }
