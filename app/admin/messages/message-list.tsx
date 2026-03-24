@@ -26,7 +26,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { MailOpen, Trash2, Reply, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { MailOpen, Trash2, Reply, ChevronLeft, ChevronRight, MoreHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
@@ -179,12 +179,16 @@ export function MessageList({ initialMessages, totalCount }: MessageListProps) {
                   <p className="text-sm font-medium">{message.subject}</p>
                 </div>
                 <div
-                  className="flex items-center gap-1 shrink-0"
+                  className="flex items-center gap-1 shrink-0 text-muted-foreground"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <span className="font-mono text-xs text-muted-foreground">
                     {new Date(message.createdAt).toLocaleDateString()}
                   </span>
+                  {expanded === message._id
+                    ? <ChevronUp width={14} height={14} />
+                    : <ChevronDown width={14} height={14} />
+                  }
 
                   {/* Desktop: dropdown */}
                   <div className="hidden md:block">
