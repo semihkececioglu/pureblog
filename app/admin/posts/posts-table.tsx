@@ -28,7 +28,21 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Pencil, Trash2, ExternalLink, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Download } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Download, MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { buttonVariants } from "@/components/ui/button";
 
 type PostRow = IPost & { category: ICategory; _id: string };
 type SortKey = "title" | "views" | "createdAt";
@@ -50,6 +64,7 @@ export function PostsTable({
   const searchParams = useSearchParams();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [drawerPost, setDrawerPost] = useState<PostRow | null>(null);
 
   // Read state from URL
   const search = searchParams.get("q") ?? "";
@@ -176,19 +191,15 @@ export function PostsTable({
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" aria-label="Edit">
-                  <Link href={`/admin/posts/${post._id}`}><Pencil width={16} height={16} /></Link>
-                </Button>
-                <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" aria-label="View on site">
-                  <Link href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink width={16} height={16} />
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" aria-label="Delete" onClick={() => setDeleteId(post._id)}>
-                  <Trash2 width={16} height={16} />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="min-h-[44px] min-w-[44px] shrink-0"
+                aria-label="Actions"
+                onClick={() => setDrawerPost(post)}
+              >
+                <MoreHorizontal width={18} height={18} />
+              </Button>
             </div>
           ))
         )}
@@ -239,21 +250,26 @@ export function PostsTable({
                     </span>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" aria-label="Edit">
-                        <Link href={`/admin/posts/${post._id}`}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label="Actions">
+                        <MoreHorizontal width={14} height={14} />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => router.push(`/admin/posts/${post._id}`)}>
                           <Pencil width={14} height={14} />
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="icon" aria-label="View on site">
-                        <Link href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.open(`/blog/${post.slug}`, "_blank")}>
                           <ExternalLink width={14} height={14} />
-                        </Link>
-                      </Button>
-                      <Button variant="ghost" size="icon" aria-label="Delete" onClick={() => setDeleteId(post._id)}>
-                        <Trash2 width={14} height={14} />
-                      </Button>
-                    </div>
+                          View on site
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(post._id)}>
+                          <Trash2 width={14} height={14} />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -290,6 +306,36 @@ export function PostsTable({
           </div>
         </div>
       )}
+
+      {/* Mobile Action Drawer */}
+      <Sheet open={!!drawerPost} onOpenChange={(open) => { if (!open) setDrawerPost(null); }}>
+        <SheetContent side="bottom">
+          <SheetHeader className="mb-2">
+            <SheetTitle className="text-left text-sm font-medium truncate">{drawerPost?.title}</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col">
+            <button
+              onClick={() => { router.push(`/admin/posts/${drawerPost?._id}`); setDrawerPost(null); }}
+              className="flex items-center gap-3 px-2 py-3 text-sm hover:bg-muted transition-colors"
+            >
+              <Pencil width={16} height={16} /> Edit
+            </button>
+            <button
+              onClick={() => { window.open(`/blog/${drawerPost?.slug}`, "_blank"); setDrawerPost(null); }}
+              className="flex items-center gap-3 px-2 py-3 text-sm hover:bg-muted transition-colors"
+            >
+              <ExternalLink width={16} height={16} /> View on site
+            </button>
+            <hr className="border-border my-1" />
+            <button
+              onClick={() => { setDeleteId(drawerPost!._id); setDrawerPost(null); }}
+              className="flex items-center gap-3 px-2 py-3 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <Trash2 width={16} height={16} /> Delete
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Delete Dialog */}
       <Dialog open={!!deleteId} onOpenChange={(open: boolean) => { if (!open) setDeleteId(null); }}>
