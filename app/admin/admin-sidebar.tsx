@@ -78,12 +78,14 @@ function AnimatedNavItem({
   href,
   label,
   Icon,
+  badge,
   isActive,
   onNavClick,
 }: {
   href: string;
   label: string;
   Icon: AnimatedIconComponent;
+  badge?: number;
   isActive: boolean;
   onNavClick?: () => void;
 }) {
@@ -96,20 +98,31 @@ function AnimatedNavItem({
         onClick={onNavClick}
         onMouseEnter={() => iconRef.current?.startAnimation()}
         onMouseLeave={() => iconRef.current?.stopAnimation()}
-        className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-colors ${
+        className={`flex items-center gap-3 px-3 py-2.5 text-sm rounded-none transition-colors ${
           isActive
             ? "bg-muted text-foreground font-medium"
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
         }`}
       >
         <Icon ref={iconRef} size={16} />
-        {label}
+        <span className="flex-1">{label}</span>
+        {badge != null && badge > 0 && (
+          <span className="font-mono text-[10px] bg-foreground text-background px-1.5 py-0.5 rounded-full leading-none">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
       </Link>
     </li>
   );
 }
 
-function SidebarNavContent({ onNavClick }: { onNavClick?: () => void }) {
+function SidebarNavContent({
+  onNavClick,
+  badges,
+}: {
+  onNavClick?: () => void;
+  badges?: Record<string, number>;
+}) {
   const pathname = usePathname();
 
   return (
@@ -126,6 +139,7 @@ function SidebarNavContent({ onNavClick }: { onNavClick?: () => void }) {
               href={href}
               label={label}
               Icon={Icon}
+              badge={badges?.[href]}
               isActive={isActive}
               onNavClick={onNavClick}
             />
@@ -136,7 +150,18 @@ function SidebarNavContent({ onNavClick }: { onNavClick?: () => void }) {
   );
 }
 
-export function AdminSidebarDesktop() {
+export function AdminSidebarDesktop({
+  pendingComments,
+  unreadMessages,
+}: {
+  pendingComments: number;
+  unreadMessages: number;
+}) {
+  const badges = {
+    "/admin/comments": pendingComments,
+    "/admin/messages": unreadMessages,
+  };
+
   return (
     <aside className="hidden md:flex w-56 border-r border-border flex-col shrink-0 sticky top-0 h-screen overflow-y-auto">
       <div className="h-14 flex items-center px-4 border-b border-border">
@@ -147,7 +172,7 @@ export function AdminSidebarDesktop() {
           PureBlog
         </Link>
       </div>
-      <SidebarNavContent />
+      <SidebarNavContent badges={badges} />
     </aside>
   );
 }
@@ -155,10 +180,19 @@ export function AdminSidebarDesktop() {
 export function AdminSidebarMobile({
   open,
   onOpenChange,
+  pendingComments,
+  unreadMessages,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  pendingComments: number;
+  unreadMessages: number;
 }) {
+  const badges = {
+    "/admin/comments": pendingComments,
+    "/admin/messages": unreadMessages,
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-64 p-0">
@@ -172,7 +206,7 @@ export function AdminSidebarMobile({
             </Link>
           </SheetTitle>
         </SheetHeader>
-        <SidebarNavContent onNavClick={() => onOpenChange(false)} />
+        <SidebarNavContent onNavClick={() => onOpenChange(false)} badges={badges} />
       </SheetContent>
     </Sheet>
   );

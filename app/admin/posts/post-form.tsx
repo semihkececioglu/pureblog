@@ -27,6 +27,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { ICategory, IPostSeries } from "@/types";
 import { CalendarIcon, ImageIcon, X } from "lucide-react";
+import { toast } from "sonner";
 
 const schema = z.object({
   title: z.string().min(3),
@@ -245,7 +246,7 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
   const [uploading, setUploading] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const submitTypeRef = useRef<"draft" | "publish">("draft");
+  const submitTypeRef = useRef<"draft" | "publish" | "continue">("draft");
   const serverSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
@@ -317,6 +318,7 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
   }
 
   async function onSubmit(data: FormData): Promise<void> {
+    const isContinue = submitTypeRef.current === "continue";
     const payload = {
       title: data.title,
       slug: data.slug,
@@ -342,7 +344,20 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
     });
 
     if (res.ok) {
-      router.push("/admin/posts");
+      if (isContinue) {
+        const json = await res.json();
+        toast.success("Draft saved.");
+        if (!initialData?._id && json.data?._id) {
+          router.push(`/admin/posts/${json.data._id}`);
+        } else {
+          router.refresh();
+        }
+      } else {
+        toast.success(submitTypeRef.current === "publish" ? "Post published." : "Draft saved.");
+        router.push("/admin/posts");
+      }
+    } else {
+      toast.error("Failed to save post.");
     }
   }
 
@@ -538,6 +553,15 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
             onClick={() => { submitTypeRef.current = "draft"; }}
           >
             {isSubmitting && submitTypeRef.current === "draft" ? "Saving..." : "Save Draft"}
+          </Button>
+
+          <Button
+            type="submit"
+            variant="ghost"
+            disabled={isSubmitting}
+            onClick={() => { submitTypeRef.current = "continue"; }}
+          >
+            {isSubmitting && submitTypeRef.current === "continue" ? "Saving..." : "Save & Continue"}
           </Button>
 
           <Button type="button" variant="ghost" onClick={() => router.push("/admin/posts")}>

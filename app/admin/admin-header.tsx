@@ -7,12 +7,25 @@ import { LogOut, Menu } from "lucide-react";
 import { AdminSidebarMobile } from "./admin-sidebar";
 import { signOutAction } from "./actions";
 
-export function AdminHeader({ userName }: { userName?: string | null }) {
+export function AdminHeader({
+  userName,
+  pendingComments,
+  unreadMessages,
+}: {
+  userName?: string | null;
+  pendingComments: number;
+  unreadMessages: number;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <>
-      <AdminSidebarMobile open={mobileOpen} onOpenChange={setMobileOpen} />
+      <AdminSidebarMobile
+        open={mobileOpen}
+        onOpenChange={setMobileOpen}
+        pendingComments={pendingComments}
+        unreadMessages={unreadMessages}
+      />
       <header className="h-14 border-b border-border flex items-center justify-between px-4 md:px-6 shrink-0">
         <div className="flex items-center gap-3">
           <Button

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/sheet";
 import { Check, X, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type CommentWithPost = IComment & {
   _id: string;
@@ -54,9 +55,12 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
 
   useEffect(() => {
     setComments(initialComments);
+    setSelectedIds(new Set());
   }, [initialComments]);
   const [deleting, setDeleting] = useState(false);
   const [drawerComment, setDrawerComment] = useState<CommentWithPost | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const search = searchParams.get("q") ?? "";
   const statusFilter = (searchParams.get("status") ?? "all") as StatusFilter;
@@ -87,6 +91,53 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
     } else {
       toast.error("Failed to update comment.");
     }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === comments.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(comments.map((c) => c._id)));
+    }
+  }
+
+  async function bulkUpdateStatus(status: "approved" | "rejected"): Promise<void> {
+    setBulkProcessing(true);
+    await Promise.all(
+      [...selectedIds].map((id) =>
+        fetch(`/api/admin/comments/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status }),
+        })
+      )
+    );
+    setComments((prev) => prev.map((c) => selectedIds.has(c._id) ? { ...c, status } : c));
+    toast.success(`${selectedIds.size} comment${selectedIds.size > 1 ? "s" : ""} ${status}.`);
+    setSelectedIds(new Set());
+    setBulkProcessing(false);
+  }
+
+  async function bulkDelete(): Promise<void> {
+    setBulkProcessing(true);
+    await Promise.all(
+      [...selectedIds].map((id) =>
+        fetch(`/api/admin/comments/${id}`, { method: "DELETE" })
+      )
+    );
+    setComments((prev) => prev.filter((c) => !selectedIds.has(c._id)));
+    toast.success(`${selectedIds.size} comment${selectedIds.size > 1 ? "s" : ""} deleted.`);
+    setSelectedIds(new Set());
+    setBulkProcessing(false);
+    router.refresh();
   }
 
   async function handleDelete(): Promise<void> {
@@ -170,17 +221,51 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
         </Button>
       </div>
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-muted border border-border rounded-md flex-wrap">
+          <span className="font-mono text-xs text-muted-foreground">{selectedIds.size} selected</span>
+          <Button size="sm" variant="outline" disabled={bulkProcessing} onClick={() => bulkUpdateStatus("approved")} className="flex items-center gap-1.5">
+            <Check width={12} height={12} /> Approve
+          </Button>
+          <Button size="sm" variant="outline" disabled={bulkProcessing} onClick={() => bulkUpdateStatus("rejected")} className="flex items-center gap-1.5">
+            <X width={12} height={12} /> Reject
+          </Button>
+          <Button size="sm" variant="destructive" disabled={bulkProcessing} onClick={bulkDelete} className="flex items-center gap-1.5">
+            <Trash2 width={12} height={12} /> Delete
+          </Button>
+          <button onClick={() => setSelectedIds(new Set())} className="ml-auto font-mono text-xs text-muted-foreground hover:text-foreground transition-colors">
+            Clear
+          </button>
+        </div>
+      )}
+
       {comments.length === 0 ? (
         <p className="text-sm text-muted-foreground">No comments found.</p>
       ) : (
         <div className="flex flex-col gap-3">
+          {/* Select all row */}
+          <div className="flex items-center gap-3 px-1">
+            <Checkbox
+              checked={selectedIds.size === comments.length && comments.length > 0}
+              onCheckedChange={toggleSelectAll}
+              aria-label="Select all"
+            />
+            <span className="text-xs text-muted-foreground">Select all</span>
+          </div>
           {comments.map((comment) => (
             <div
               key={comment._id}
-              className={`border p-4 flex items-start justify-between gap-4 ${
+              className={`border p-4 flex items-start gap-4 ${
                 comment.status === "pending" ? "border-foreground" : "border-border opacity-60"
               }`}
             >
+              <Checkbox
+                checked={selectedIds.has(comment._id)}
+                onCheckedChange={() => toggleSelect(comment._id)}
+                className="mt-0.5 shrink-0"
+                aria-label="Select comment"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="text-sm font-medium">{comment.name}</span>

@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ import {
   Camera,
   Play,
   Users,
+  ImageIcon,
 } from "lucide-react";
 
 const schema = z.object({
@@ -60,10 +62,16 @@ const socialFields = [
 ];
 
 export function SettingsForm({ initialData }: SettingsFormProps) {
+  const ogImageRef = useRef<HTMLInputElement>(null);
+  const faviconRef = useRef<HTMLInputElement>(null);
+  const [uploadingOg, setUploadingOg] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { isSubmitting, errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -91,6 +99,21 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
   const welcomeDescription = watch("welcomeDescription") ?? "";
   const ogImage = watch("ogImage") ?? "";
   const favicon = watch("favicon") ?? "";
+
+  async function handleUpload(
+    file: File,
+    field: "ogImage" | "favicon",
+    setUploading: (v: boolean) => void,
+  ) {
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const json = await res.json();
+    if (json.data?.url) setValue(field, json.data.url);
+    else toast.error("Upload failed.");
+    setUploading(false);
+  }
 
   async function onSubmit(data: FormData) {
     try {
@@ -130,12 +153,35 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="favicon">Favicon</Label>
-            <Input
-              id="favicon"
-              {...register("favicon")}
-              placeholder="https://example.com/favicon.png"
-              type="url"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                id="favicon"
+                {...register("favicon")}
+                placeholder="https://example.com/favicon.png"
+                type="url"
+              />
+              <input
+                ref={faviconRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUpload(file, "favicon", setUploadingFavicon);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploadingFavicon}
+                onClick={() => faviconRef.current?.click()}
+                className="shrink-0"
+              >
+                <ImageIcon className="w-3.5 h-3.5 mr-1.5" />
+                {uploadingFavicon ? "Uploading..." : "Upload"}
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">
               Shown in browser tabs and bookmarks. Recommended: <strong>32×32px</strong> or <strong>64×64px</strong>. PNG, ICO, or SVG. Square images work best.
             </p>
@@ -260,12 +306,35 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="ogImage">Default OG Image</Label>
-            <Input
-              id="ogImage"
-              {...register("ogImage")}
-              placeholder="https://example.com/og-image.png"
-              type="url"
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                id="ogImage"
+                {...register("ogImage")}
+                placeholder="https://example.com/og-image.png"
+                type="url"
+              />
+              <input
+                ref={ogImageRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleUpload(file, "ogImage", setUploadingOg);
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploadingOg}
+                onClick={() => ogImageRef.current?.click()}
+                className="shrink-0"
+              >
+                <ImageIcon className="w-3.5 h-3.5 mr-1.5" />
+                {uploadingOg ? "Uploading..." : "Upload"}
+              </Button>
+            </div>
             <p className="text-xs text-muted-foreground">
               Shown when your site is shared on social media (Twitter, Facebook, etc.). Recommended: <strong>1200×630px</strong> (1.91:1 ratio). PNG or JPG, max 8MB. Used as fallback when a post has no cover image.
             </p>
