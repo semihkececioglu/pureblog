@@ -81,11 +81,8 @@ async function getDashboardData() {
 
 const statConfig = [
   { key: "posts" as const, label: "Published Posts" },
-  { key: "comments" as const, label: "Pending Comments" },
-  { key: "messages" as const, label: "Unread Messages" },
   { key: "subscribers" as const, label: "Subscribers" },
   { key: "totalViews" as const, label: "Total Views" },
-  { key: "totalHearts" as const, label: "Total Hearts" },
   { key: "approvedComments" as const, label: "Approved Comments" },
 ];
 
@@ -122,7 +119,7 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         {statConfig.map(({ key, label }) => (
           <div key={key} className="relative border border-border p-6 group hover:border-foreground transition-colors duration-200">
             <CornerMark position="top-left" />
