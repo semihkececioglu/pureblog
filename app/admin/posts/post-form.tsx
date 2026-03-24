@@ -307,14 +307,26 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
 
   async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>): Promise<void> {
     const file = e.target.files?.[0];
+    // Reset so same file can be re-selected
+    e.target.value = "";
     if (!file) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
-    const json = await res.json();
-    if (json.data?.url) setValue("coverImage", json.data.url);
-    setUploading(false);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const json = await res.json();
+      if (json.data?.url) {
+        setValue("coverImage", json.data.url);
+        toast.success("Image uploaded.");
+      } else {
+        toast.error(json.error ?? "Upload failed.");
+      }
+    } catch {
+      toast.error("Upload failed. Check your connection.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function onSubmit(data: FormData): Promise<void> {
