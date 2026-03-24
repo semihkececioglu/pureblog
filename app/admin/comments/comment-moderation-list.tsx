@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { IComment } from "@/types";
@@ -51,6 +51,10 @@ export function CommentModerationList({ initialComments, totalCount }: CommentMo
   const searchParams = useSearchParams();
   const [comments, setComments] = useState(initialComments);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setComments(initialComments);
+  }, [initialComments]);
   const [deleting, setDeleting] = useState(false);
   const [drawerComment, setDrawerComment] = useState<CommentWithPost | null>(null);
 
