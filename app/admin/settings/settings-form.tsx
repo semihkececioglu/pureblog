@@ -122,8 +122,35 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
               {...register("siteName")}
               placeholder="Pureblog"
             />
-            {errors.siteName && (
+            {errors.siteName ? (
               <p className="text-xs text-destructive">{errors.siteName.message}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Appears in the browser tab, navbar, and email notifications.</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="favicon">Favicon</Label>
+            <Input
+              id="favicon"
+              {...register("favicon")}
+              placeholder="https://example.com/favicon.png"
+              type="url"
+            />
+            <p className="text-xs text-muted-foreground">
+              Shown in browser tabs and bookmarks. Recommended: <strong>32×32px</strong> or <strong>64×64px</strong>. PNG, ICO, or SVG. Square images work best.
+            </p>
+            {favicon && (
+              <div className="flex items-center gap-3 mt-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={favicon}
+                  alt="Favicon preview"
+                  className="size-8 border border-border object-contain bg-muted"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
+                />
+                <span className="text-xs text-muted-foreground">32×32 preview</span>
+              </div>
             )}
           </div>
         </CardContent>
@@ -232,44 +259,29 @@ export function SettingsForm({ initialData }: SettingsFormProps) {
             )}
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="ogImage">Default OG Image URL</Label>
+            <Label htmlFor="ogImage">Default OG Image</Label>
             <Input
               id="ogImage"
               {...register("ogImage")}
               placeholder="https://example.com/og-image.png"
               type="url"
             />
+            <p className="text-xs text-muted-foreground">
+              Shown when your site is shared on social media (Twitter, Facebook, etc.). Recommended: <strong>1200×630px</strong> (1.91:1 ratio). PNG or JPG, max 8MB. Used as fallback when a post has no cover image.
+            </p>
             {ogImage && (
               <div className="mt-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={ogImage}
-                  alt="OG image preview"
-                  className="max-h-32 max-w-full border border-border object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="favicon">Favicon URL</Label>
-            <Input
-              id="favicon"
-              {...register("favicon")}
-              placeholder="https://example.com/favicon.png"
-              type="url"
-            />
-            {favicon && (
-              <div className="mt-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={favicon}
-                  alt="Favicon preview"
-                  className="size-8 border border-border object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
-                />
+                <div className="relative w-full max-w-xs aspect-[1.91/1] border border-border bg-muted overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={ogImage}
+                    alt="OG image preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    onLoad={(e) => { (e.target as HTMLImageElement).style.display = "block"; }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Preview (1200×630 ratio)</p>
               </div>
             )}
           </div>
