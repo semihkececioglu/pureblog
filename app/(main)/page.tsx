@@ -13,16 +13,39 @@ import Post from "@/models/Post";
 import Settings from "@/models/Settings";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
-import { buildMetadata, siteUrl } from "@/lib/metadata";
+import { siteUrl } from "@/lib/metadata";
+import { getCachedSettings } from "@/lib/cache";
 import { WebsiteJsonLd } from "@/components/json-ld";
 import { StripedPattern } from "@/components/magicui/striped-pattern";
 import { TextAnimate } from "@/components/ui/text-animate";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const metadata: Metadata = buildMetadata({
-  title: "Home",
-  description: "Thoughts on technology, design, and everything in between.",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getCachedSettings();
+  const name = settings.siteName || "PureBlog";
+  const description = settings.metaDescription || "A modern blog.";
+  const ogImage = settings.ogImage || `${siteUrl}/api/og?title=${encodeURIComponent(name)}`;
+
+  return {
+    title: { absolute: name },
+    description,
+    alternates: { canonical: siteUrl },
+    openGraph: {
+      title: name,
+      description,
+      url: siteUrl,
+      type: "website",
+      siteName: name,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: name,
+      description,
+      images: [ogImage],
+    },
+  };
+}
 
 // ─── data fetchers ────────────────────────────────────────────────────────────
 
