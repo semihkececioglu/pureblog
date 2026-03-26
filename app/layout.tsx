@@ -20,6 +20,8 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pureblog.vercel.app";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
   return {
@@ -28,6 +30,11 @@ export async function generateMetadata(): Promise<Metadata> {
     ...(settings.favicon && {
       icons: { icon: settings.favicon },
     }),
+    alternates: {
+      types: {
+        "application/rss+xml": `${siteUrl}/feed.xml`,
+      },
+    },
   };
 }
 

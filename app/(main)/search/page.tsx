@@ -6,6 +6,7 @@ import Post from "@/models/Post";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { PostCard } from "@/components/post-card";
+import { Pagination } from "@/components/pagination";
 
 export const metadata: Metadata = buildMetadata({
   title: "Search",
@@ -13,25 +14,36 @@ export const metadata: Metadata = buildMetadata({
   path: "/search",
 });
 
+const PAGE_SIZE = 12;
+
 interface PageProps {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }
 
-async function searchPosts(query: string) {
+async function searchPosts(query: string, page: number) {
   await connectDB();
-  const posts = await Post.find(
-    { $text: { $search: query }, status: "published" },
-    { score: { $meta: "textScore" } },
-  )
-    .populate("category", "name slug")
-    .sort({ score: { $meta: "textScore" } })
-    .lean();
-  return posts as unknown as (IPost & { category: ICategory })[];
+  const skip = (page - 1) * PAGE_SIZE;
+  const filter = { $text: { $search: query }, status: "published" };
+  const projection = { score: { $meta: "textScore" } };
+  const [posts, total] = await Promise.all([
+    Post.find(filter, projection)
+      .populate("category", "name slug")
+      .sort({ score: { $meta: "textScore" } })
+      .skip(skip)
+      .limit(PAGE_SIZE)
+      .lean(),
+    Post.countDocuments(filter),
+  ]);
+  return { posts: posts as unknown as (IPost & { category: ICategory })[], total };
 }
 
 export default async function SearchPage({ searchParams }: PageProps) {
-  const { q } = await searchParams;
-  const posts = q && q.trim().length > 0 ? await searchPosts(q) : [];
+  const { q, page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam ?? "1"));
+  const { posts, total } = q && q.trim().length > 0
+    ? await searchPosts(q, page)
+    : { posts: [], total: 0 };
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
@@ -56,7 +68,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
         {q && (
           <p className="text-muted-foreground text-sm mt-4">
-            {posts.length} result{posts.length !== 1 ? "s" : ""} for{" "}
+            {total} result{total !== 1 ? "s" : ""} for{" "}
             <span className="text-foreground font-medium">&quot;{q}&quot;</span>
           </p>
         )}
@@ -75,6 +87,14 @@ export default async function SearchPage({ searchParams }: PageProps) {
           posts.map((post) => <PostCard key={String(post._id)} post={post} />)
         )}
       </div>
+
+      {q && totalPages > 1 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          buildHref={(p) => `/search?q=${encodeURIComponent(q)}&page=${p}`}
+        />
+      )}
     </div>
   );
 }
