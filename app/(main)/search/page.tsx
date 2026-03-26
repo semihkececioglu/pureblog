@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/metadata";
 import { Search } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { PostCard } from "@/components/post-card";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Search",
+  description: "Search posts by keyword.",
+  path: "/search",
+});
 
 interface PageProps {
   searchParams: Promise<{ q?: string }>;

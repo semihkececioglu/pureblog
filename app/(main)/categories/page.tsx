@@ -6,6 +6,8 @@ import { ArrowRight } from "lucide-react";
 import { buildMetadata } from "@/lib/metadata";
 import { getCachedCategoriesWithCount } from "@/lib/cache";
 import { CardWithCorners } from "@/components/structural-lines";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { siteUrl } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
   title: "Categories",
@@ -18,6 +20,10 @@ export default async function CategoriesPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <BreadcrumbJsonLd items={[
+        { name: "Home", url: siteUrl },
+        { name: "Categories", url: `${siteUrl}/categories` },
+      ]} />
       <section className="mb-12">
         <h1 className="font-serif text-4xl font-bold tracking-tight mb-4">
           Categories

@@ -7,6 +7,8 @@ import { BlogPostsSkeleton } from "@/components/blog-posts-skeleton";
 import { BlogPostCount } from "@/components/blog-post-count";
 import { getCachedCategories } from "@/lib/cache";
 import { ViewProvider } from "@/components/view-context";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
+import { siteUrl } from "@/lib/metadata";
 
 export const revalidate = 30;
 
@@ -44,6 +46,10 @@ export default async function BlogPage({
 
   return (
     <ViewProvider initialView={view}>
+      <BreadcrumbJsonLd items={[
+        { name: "Home", url: siteUrl },
+        { name: "Blog", url: `${siteUrl}/blog` },
+      ]} />
       <div className="max-w-3xl mx-auto px-4 py-12">
         <section className="mb-8">
           <h1 className="font-serif text-4xl font-bold tracking-tight mb-2">

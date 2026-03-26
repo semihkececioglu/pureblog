@@ -7,7 +7,8 @@ import Post from "@/models/Post";
 import "@/models/Category";
 import { IPost, ICategory } from "@/types";
 import { PostCard } from "@/components/post-card";
-import { buildMetadata } from "@/lib/metadata";
+import { buildMetadata, siteUrl } from "@/lib/metadata";
+import { BreadcrumbJsonLd } from "@/components/json-ld";
 import { Pagination } from "@/components/pagination";
 
 const PER_PAGE = 6;
@@ -63,6 +64,11 @@ export default async function TagPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <BreadcrumbJsonLd items={[
+        { name: "Home", url: siteUrl },
+        { name: "Tags", url: `${siteUrl}/tags` },
+        { name: `#${slug}`, url: `${siteUrl}/tags/${slug}` },
+      ]} />
       <header className="mb-12">
         <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">
           Tag
