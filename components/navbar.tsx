@@ -83,7 +83,7 @@ function CategoriesMenu({ categories }: { categories: TopCategory[] }) {
 
               {/* Grid */}
               <div className="grid grid-cols-2">
-                {categories.map((cat, i) => (
+                {categories.slice(0, 4).map((cat, i) => (
                   <Link
                     key={cat._id}
                     href={`/categories/${cat.slug}`}
@@ -154,6 +154,7 @@ function NavLink({
 
 const staticLinks = [
   { href: "/blog", label: "Blog" },
+  { href: "/series", label: "Series" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

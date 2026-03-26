@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Menu, X, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCommandPalette } from "@/components/command-palette";
 
 const navLinks = [
   { href: "/blog", label: "Blog" },
+  { href: "/series", label: "Series" },
   { href: "/categories", label: "Categories" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -19,10 +20,6 @@ export function MobileBottomBar() {
   const { openPalette } = useCommandPalette();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Close menu on route change
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   return (
     <>
@@ -62,6 +59,7 @@ export function MobileBottomBar() {
                   <Link
                     key={link.href}
                     href={link.href}
+                    onClick={() => setMenuOpen(false)}
                     className={`group flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-muted/50 ${
                       i < navLinks.length - 1 ? "border-b border-border" : ""
                     } ${isActive ? "bg-muted/30" : ""}`}

@@ -26,10 +26,9 @@ export const getCachedCategoriesWithCount = unstable_cache(
       Category.find().sort({ name: 1 }).lean() as unknown as Promise<ICategory[]>,
     ]);
     const countMap = new Map(counts.map((c) => [String(c._id), c.postCount]));
-    const withCount = categories.map((cat) => ({
-      ...cat,
-      postCount: countMap.get(String(cat._id)) ?? 0,
-    }));
+    const withCount = categories
+      .map((cat) => ({ ...cat, postCount: countMap.get(String(cat._id)) ?? 0 }))
+      .sort((a, b) => b.postCount - a.postCount);
     return JSON.parse(JSON.stringify(withCount));
   },
   ["categories-with-count"],

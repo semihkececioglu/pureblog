@@ -51,7 +51,7 @@ export default async function BlogPage({
         { name: "Blog", url: `${siteUrl}/blog` },
       ]} />
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <section className="mb-8">
+        <header className="mb-8">
           <h1 className="font-serif text-4xl font-bold tracking-tight mb-2">
             Blog
           </h1>
@@ -62,7 +62,7 @@ export default async function BlogPage({
               search={search}
             />
           </Suspense>
-        </section>
+        </header>
 
         <BlogFilters
           categories={categories}
