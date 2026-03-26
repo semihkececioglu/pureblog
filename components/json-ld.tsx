@@ -34,6 +34,21 @@ interface ArticleJsonLdProps {
   updatedAt: Date;
   slug: string;
   coverImage?: string;
+  author?: { name: string; slug: string };
+}
+
+interface PersonJsonLdProps {
+  name: string;
+  slug: string;
+  bio?: string;
+  avatar?: string;
+  social?: {
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+    github?: string;
+    website?: string;
+  };
 }
 
 interface WebsiteJsonLdProps {
@@ -48,6 +63,7 @@ export function ArticleJsonLd({
   updatedAt,
   slug,
   coverImage,
+  author,
 }: ArticleJsonLdProps) {
   const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pureblog.vercel.app";
   const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? "PureBlog";
@@ -57,9 +73,11 @@ export function ArticleJsonLd({
     "@type": "Article",
     headline: title,
     description,
-    datePublished: publishedAt.toISOString(),
-    dateModified: updatedAt.toISOString(),
-    author: { "@type": "Person", name: siteName },
+    datePublished: new Date(publishedAt).toISOString(),
+    dateModified: new Date(updatedAt).toISOString(),
+    author: author
+      ? { "@type": "Person", name: author.name, url: `${siteUrl}/author/${author.slug}` }
+      : { "@type": "Person", name: siteName },
     image: coverImage ?? `${siteUrl}/api/og?title=${encodeURIComponent(title)}`,
     url: `${siteUrl}/blog/${slug}`,
     publisher: {
@@ -67,6 +85,35 @@ export function ArticleJsonLd({
       name: siteName,
       url: siteUrl,
     },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
+export function PersonJsonLd({ name, slug, bio, avatar, social }: PersonJsonLdProps) {
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pureblog.vercel.app";
+
+  const sameAs = [
+    social?.twitter,
+    social?.instagram,
+    social?.linkedin,
+    social?.github,
+    social?.website,
+  ].filter(Boolean);
+
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name,
+    url: `${siteUrl}/author/${slug}`,
+    ...(bio && { description: bio }),
+    ...(avatar && { image: avatar }),
+    ...(sameAs.length > 0 && { sameAs }),
   };
 
   return (

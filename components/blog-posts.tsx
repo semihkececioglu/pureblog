@@ -49,7 +49,7 @@ async function getPosts(
   ]);
 
   return {
-    posts: posts as unknown as (IPost & { category: ICategory })[],
+    posts: JSON.parse(JSON.stringify(posts)) as (IPost & { category: ICategory })[],
     total,
   };
 }
