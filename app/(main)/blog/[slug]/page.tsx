@@ -8,8 +8,9 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import "@/models/Category";
+import "@/models/Author";
 import PostSeries from "@/models/PostSeries";
-import { IPost, ICategory, IPostSeries } from "@/types";
+import { IAuthor, IPost, ICategory, IPostSeries } from "@/types";
 import { SeriesNavigation } from "@/components/series-navigation";
 import { ViewCounter } from "./view-tracker";
 import { ReactionBar } from "./reaction-bar";
@@ -18,6 +19,7 @@ import { CommentSection } from "./comment-section";
 import { siteUrl } from "@/lib/metadata";
 import { getCachedSettings } from "@/lib/cache";
 import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
+import { AuthorCard } from "@/components/author-card";
 import { TableOfContents } from "@/components/table-of-contents";
 import { addHeadingIds, extractHeadings } from "@/lib/toc";
 import { RelatedPosts } from "@/components/related-posts";
@@ -45,7 +47,8 @@ export async function generateMetadata({
   await connectDB();
   const post = (await Post.findOne({ slug, status: "published" })
     .populate("category", "name")
-    .lean()) as unknown as (IPost & { category: ICategory }) | null;
+    .populate("author", "name")
+    .lean()) as unknown as (IPost & { category: ICategory; author?: IAuthor & { _id: string } }) | null;
 
   if (!post) return {};
 
@@ -68,7 +71,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.publishedAt?.toISOString(),
       modifiedTime: post.updatedAt?.toISOString(),
-      authors: [siteName],
+      authors: [post.author?.name ?? siteName],
       images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
     },
     twitter: {
@@ -84,8 +87,9 @@ async function getPost(slug: string) {
   await connectDB();
   const post = await Post.findOne({ slug, status: "published" })
     .populate("category", "name slug")
+    .populate("author")
     .lean();
-  return post as unknown as (IPost & { category: ICategory }) | null;
+  return post ? JSON.parse(JSON.stringify(post)) as (IPost & { category: ICategory; author?: IAuthor & { _id: string } }) : null;
 }
 
 async function getAdjacentPosts(publishedAt: Date) {
@@ -138,6 +142,13 @@ export default async function PostPage({ params }: PageProps) {
     getRelatedPosts(post.category._id, post.slug),
     post.series ? getSeriesData(post.series as unknown as import("mongoose").Types.ObjectId) : null,
   ]);
+  const seriesSorted = seriesData
+    ? [...seriesData.posts].sort((a, b) => a.seriesOrder - b.seriesOrder)
+    : null;
+  const seriesIdx = seriesSorted ? seriesSorted.findIndex((p) => p.slug === post.slug) : -1;
+  const prevInSeries = seriesSorted && seriesIdx > 0 ? seriesSorted[seriesIdx - 1] : null;
+  const nextInSeries = seriesSorted && seriesIdx < (seriesSorted.length - 1) ? seriesSorted[seriesIdx + 1] : null;
+
   const rawContent = addHeadingIds(post.content);
   const contentWithIds = sanitizeHtml(rawContent, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat([
@@ -164,8 +175,8 @@ export default async function PostPage({ params }: PageProps) {
         url={postUrl}
         slug={post.slug}
         excerpt={post.excerpt}
-        prevSlug={prev ? (prev as IPost).slug : undefined}
-        nextSlug={next ? (next as IPost).slug : undefined}
+        prevSlug={prevInSeries?.slug ?? (prev ? (prev as IPost).slug : undefined)}
+        nextSlug={nextInSeries?.slug ?? (next ? (next as IPost).slug : undefined)}
       />
       <article className="max-w-2xl mx-auto px-4 pt-6 pb-12">
         <ArticleJsonLd
@@ -175,6 +186,7 @@ export default async function PostPage({ params }: PageProps) {
           updatedAt={post.updatedAt}
           slug={post.slug}
           coverImage={post.coverImage}
+          author={post.author ? { name: post.author.name, slug: post.author.slug } : undefined}
         />
         <BreadcrumbJsonLd
           items={[
@@ -267,6 +279,12 @@ export default async function PostPage({ params }: PageProps) {
           <StripedPattern direction="right" className="text-border" />
         </div>
 
+        {post.author && (
+          <div className="mb-6">
+            <AuthorCard author={post.author} />
+          </div>
+        )}
+
         {post.tags && post.tags.length > 0 && (
           <>
             <div className="flex flex-wrap gap-2 mb-6">
@@ -293,7 +311,57 @@ export default async function PostPage({ params }: PageProps) {
           </>
         )}
 
-        {(prev || next) && (
+        {seriesData && seriesSorted ? (
+            <nav className="mt-8 flex flex-col gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {prevInSeries ? (
+                  <Link
+                    href={`/blog/${prevInSeries.slug}`}
+                    className="group flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors"
+                  >
+                    <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                      <ArrowLeft className="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-1" />
+                      Previous in series
+                    </span>
+                    <span className="text-sm font-medium leading-snug">{prevInSeries.title}</span>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+                {nextInSeries ? (
+                  <Link
+                    href={`/blog/${nextInSeries.slug}`}
+                    className="group flex flex-col gap-2 rounded-xl bg-muted/50 p-5 hover:bg-muted transition-colors text-right items-end"
+                  >
+                    <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                      Next in series
+                      <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-1" />
+                    </span>
+                    <span className="text-sm font-medium leading-snug">{nextInSeries.title}</span>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+              </div>
+              <div className="flex items-center justify-center gap-4">
+                {seriesIdx > 0 && (
+                  <Link
+                    href={`/blog/${seriesSorted[0].slug}`}
+                    className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+                  >
+                    <ArrowLeft className="w-3 h-3" />
+                    Start of series
+                  </Link>
+                )}
+                <Link
+                  href={`/series/${(seriesData.series as IPostSeries).slug}`}
+                  className="font-mono text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  View full series
+                </Link>
+              </div>
+            </nav>
+        ) : (prev || next) && (
           <nav className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
             {prev ? (
               <Link
