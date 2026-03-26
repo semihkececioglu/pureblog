@@ -198,10 +198,8 @@ export function SeriesList({ initialSeries }: SeriesListProps) {
                   <DropdownMenuItem onClick={() => startEdit(item)}>
                     <Pencil width={14} height={14} /> Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/admin/series/${item._id}`} className="flex items-center gap-2">
-                      <ListOrdered width={14} height={14} /> Manage Posts
-                    </Link>
+                  <DropdownMenuItem onClick={() => router.push(`/admin/series/${item._id}`)}>
+                    <ListOrdered width={14} height={14} /> Manage Posts
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(item._id)}>
