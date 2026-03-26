@@ -1,5 +1,22 @@
 import { Types } from "mongoose";
 
+export interface IAuthor {
+  _id: Types.ObjectId;
+  name: string;
+  slug: string;
+  bio?: string;
+  avatar?: string;
+  social?: {
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+    github?: string;
+    website?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ISettings {
   _id: Types.ObjectId;
   siteName?: string;
@@ -42,6 +59,7 @@ export interface IPost {
   previewToken?: string;
   series?: Types.ObjectId;
   seriesOrder?: number;
+  author?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }

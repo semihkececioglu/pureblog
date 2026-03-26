@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { ICategory, IPostSeries } from "@/types";
+import { IAuthor, ICategory, IPostSeries } from "@/types";
 import { CalendarIcon, ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,6 +40,7 @@ const schema = z.object({
   scheduledAt: z.string().optional(),
   series: z.string().optional(),
   seriesOrder: z.string().optional(),
+  author: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -48,6 +49,7 @@ export interface PostFormProps {
   categories: ICategory[];
   seriesList: IPostSeries[];
   existingTags: string[];
+  authors: IAuthor[];
   initialData?: {
     _id: string;
     title: string;
@@ -61,6 +63,7 @@ export interface PostFormProps {
     scheduledAt?: string;
     series?: string;
     seriesOrder?: number;
+    author?: string;
   };
 }
 
@@ -240,7 +243,7 @@ function TagsInput({ value, onChange, existingTags }: { value: string; onChange:
   );
 }
 
-export function PostForm({ categories, seriesList, existingTags, initialData }: PostFormProps) {
+export function PostForm({ categories, seriesList, existingTags, authors, initialData }: PostFormProps) {
   const router = useRouter();
   const [content, setContent] = useState(initialData?.content ?? "");
   const [uploading, setUploading] = useState(false);
@@ -270,6 +273,7 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
       scheduledAt: initialData?.scheduledAt ?? "",
       series: initialData?.series ?? "",
       seriesOrder: initialData?.seriesOrder?.toString() ?? "",
+      author: initialData?.author ?? "",
     },
   });
 
@@ -344,6 +348,7 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
       scheduledAt: submitTypeRef.current === "publish" ? null : (data.scheduledAt || null),
       series: data.series || null,
       seriesOrder: data.seriesOrder ? parseInt(data.seriesOrder, 10) : null,
+      author: data.author || null,
     };
 
     const url = initialData?._id ? `/api/admin/posts/${initialData._id}` : "/api/admin/posts";
@@ -443,6 +448,33 @@ export function PostForm({ categories, seriesList, existingTags, initialData }: 
                 control={control}
                 render={({ field }) => (
                   <TagsInput value={field.value} onChange={field.onChange} existingTags={existingTags} />
+                )}
+              />
+            </Field>
+          </FieldRow>
+          <FieldRow>
+            <Field label="Author" hint="Optional — assign an author to this post">
+              <Controller
+                name="author"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value || "__none__"} onValueChange={(v) => field.onChange(!v || v === "__none__" ? "" : v)}>
+                    <SelectTrigger className="h-8">
+                      <span className={(!field.value || field.value === "__none__") ? "text-muted-foreground" : undefined}>
+                        {field.value && field.value !== "__none__"
+                          ? (authors.find((a) => String(a._id) === field.value)?.name ?? field.value)
+                          : "No author"}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">No author</SelectItem>
+                      {authors.map((a) => (
+                        <SelectItem key={String(a._id)} value={String(a._id)}>
+                          {a.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 )}
               />
             </Field>

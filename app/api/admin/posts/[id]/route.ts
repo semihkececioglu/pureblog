@@ -18,6 +18,7 @@ const schema = z.object({
   scheduledAt: z.string().nullable().optional(),
   series: z.string().nullable().optional(),
   seriesOrder: z.number().nullable().optional(),
+  author: z.string().nullable().optional(),
 });
 
 interface RouteParams {
@@ -51,6 +52,7 @@ export async function PATCH(
         ...data,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         publishedAt: data.status === "published" ? new Date() : undefined,
+        author: data.author ?? null,
       },
       { new: true },
     );

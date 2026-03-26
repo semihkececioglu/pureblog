@@ -15,6 +15,7 @@ interface AutosaveBody {
   featured?: boolean;
   series?: string;
   seriesOrder?: string;
+  author?: string;
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       featured: body.featured ?? false,
       series: body.series || null,
       seriesOrder: body.seriesOrder ? parseInt(body.seriesOrder, 10) : null,
+      author: body.author || null,
       status: "draft" as const,
     };
 

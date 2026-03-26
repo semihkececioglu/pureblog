@@ -10,6 +10,7 @@ import { BookTextIcon } from "@/components/ui/book-text";
 import { MessageSquareIcon } from "@/components/ui/message-square";
 import { SendIcon } from "@/components/ui/send";
 import { UsersIcon } from "@/components/ui/users";
+import { UserIcon } from "@/components/ui/user";
 import { SettingsIcon } from "@/components/ui/settings";
 import {
   Sheet,
@@ -51,6 +52,11 @@ const navItems: { href: string; label: string; Icon: AnimatedIconComponent }[] =
       href: "/admin/series",
       label: "Series",
       Icon: BookTextIcon as AnimatedIconComponent,
+    },
+    {
+      href: "/admin/authors",
+      label: "Authors",
+      Icon: UserIcon as AnimatedIconComponent,
     },
     {
       href: "/admin/comments",

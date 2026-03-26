@@ -18,6 +18,7 @@ const schema = z.object({
   scheduledAt: z.string().nullable().optional(),
   series: z.string().nullable().optional(),
   seriesOrder: z.number().nullable().optional(),
+  author: z.string().nullable().optional(),
 });
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       publishedAt: data.status === "published" ? new Date() : undefined,
       series: data.series ?? undefined,
       seriesOrder: data.seriesOrder ?? undefined,
+      author: data.author ?? undefined,
       previewToken,
     });
 
