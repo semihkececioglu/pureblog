@@ -30,7 +30,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Trash2, Pencil, MoreHorizontal, Plus } from "lucide-react";
+import { Trash2, Pencil, MoreHorizontal, Plus, ListOrdered } from "lucide-react";
+import Link from "next/link";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -193,9 +194,14 @@ export function SeriesList({ initialSeries }: SeriesListProps) {
                 <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label="Actions">
                   <MoreHorizontal width={14} height={14} />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-44">
                   <DropdownMenuItem onClick={() => startEdit(item)}>
                     <Pencil width={14} height={14} /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/admin/series/${item._id}`} className="flex items-center gap-2">
+                      <ListOrdered width={14} height={14} /> Manage Posts
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(item._id)}>
@@ -273,6 +279,13 @@ export function SeriesList({ initialSeries }: SeriesListProps) {
             >
               <Pencil width={16} height={16} /> Edit
             </button>
+            <Link
+              href={`/admin/series/${drawerItem?._id}`}
+              onClick={() => setDrawerItem(null)}
+              className="flex items-center gap-3 py-3 text-sm hover:bg-muted transition-colors rounded-md px-2"
+            >
+              <ListOrdered width={16} height={16} /> Manage Posts
+            </Link>
             <hr className="border-border my-1" />
             <button
               onClick={() => { setDeleteId(drawerItem!._id); setDrawerItem(null); }}
