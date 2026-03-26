@@ -137,7 +137,7 @@ export function AuthorList({ initialAuthors }: AuthorListProps) {
       const json = await res.json();
       if (json.data) {
         setAuthors((prev) =>
-          prev.map((a) => (a._id === editingId ? { ...a, ...data, _id: editingId } : a)),
+          prev.map((a) => (a._id === editingId ? ({ ...a, ...data, _id: editingId } as AuthorItem) : a)),
         );
         setEditingId(null);
         setFormSheet(null);
