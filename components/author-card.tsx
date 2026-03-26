@@ -65,7 +65,7 @@ export function AuthorCard({ author }: AuthorCardProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={label}
-                onClick={(e) => e.preventDefault() || e.stopPropagation() || window.open(toAbsoluteUrl(author.social?.[key] ?? ""), "_blank")}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(toAbsoluteUrl(author.social?.[key] ?? ""), "_blank"); }}
                 className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1 -m-1 transition-colors"
               >
                 <Icon className="w-4 h-4" />
