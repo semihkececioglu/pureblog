@@ -4,10 +4,11 @@ import { Suspense } from "react";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import Category from "@/models/Category";
+import Author from "@/models/Author";
 import "@/models/Category";
-import { IPost, ICategory } from "@/types";
+import { IAuthor, IPost, ICategory } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Plus, Download } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { PostsTable } from "./posts-table";
 
@@ -17,6 +18,7 @@ interface SearchParams {
   q?: string;
   status?: string;
   category?: string;
+  author?: string;
   sort?: string;
   dir?: string;
   page?: string;
@@ -35,25 +37,32 @@ async function getPosts(sp: SearchParams) {
     const cat = await Category.findOne({ slug: sp.category }).select("_id").lean();
     filter.category = cat ? cat._id : null;
   }
+  if (sp.author && sp.author !== "all") {
+    const auth = await Author.findOne({ slug: sp.author }).select("_id").lean();
+    filter.author = auth ? auth._id : null;
+  }
 
   const sortField =
     sp.sort === "title" ? "title" : sp.sort === "views" ? "views" : "createdAt";
   const sortDir = sp.dir === "asc" ? 1 : -1;
 
-  const [posts, total, categories] = await Promise.all([
+  const [posts, total, categories, authors] = await Promise.all([
     Post.find(filter)
       .populate("category", "name slug")
+      .populate("author", "name slug avatar")
       .sort({ [sortField]: sortDir })
       .skip(skip)
       .limit(PAGE_SIZE)
       .lean(),
     Post.countDocuments(filter),
     Category.find().sort({ name: 1 }).lean(),
+    Author.find().sort({ name: 1 }).select("name slug").lean(),
   ]);
 
   return {
-    posts: JSON.parse(JSON.stringify(posts)) as (IPost & { category: ICategory; _id: string })[],
+    posts: JSON.parse(JSON.stringify(posts)) as (IPost & { category: ICategory; author?: IAuthor; _id: string })[],
     categories: JSON.parse(JSON.stringify(categories)) as (ICategory & { _id: string })[],
+    authors: JSON.parse(JSON.stringify(authors)) as (IAuthor & { _id: string })[],
     total,
   };
 }
@@ -64,19 +73,13 @@ export default async function AdminPostsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const { posts, categories, total } = await getPosts(sp);
+  const { posts, categories, authors, total } = await getPosts(sp);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-serif text-3xl font-bold tracking-tight">Posts</h1>
         <div className="flex items-center gap-2">
-          <Link href="/api/admin/posts/export">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Download width={14} height={14} />
-              Export CSV
-            </Button>
-          </Link>
           <Button>
             <Link href="/admin/posts/new" className="flex items-center gap-2">
               <Plus width={16} height={16} />
@@ -86,7 +89,7 @@ export default async function AdminPostsPage({
         </div>
       </div>
       <Suspense>
-        <PostsTable posts={posts} categories={categories} totalCount={total} />
+        <PostsTable posts={posts} categories={categories} authors={authors} totalCount={total} />
       </Suspense>
     </div>
   );

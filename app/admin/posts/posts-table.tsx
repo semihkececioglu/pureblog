@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { IPost, ICategory } from "@/types";
+import { IPost, ICategory, IAuthor } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -44,7 +45,7 @@ import {
 } from "@/components/ui/sheet";
 import { buttonVariants } from "@/components/ui/button";
 
-type PostRow = IPost & { category: ICategory; _id: string };
+type PostRow = IPost & { category: ICategory; author?: IAuthor; _id: string };
 type SortKey = "title" | "views" | "createdAt";
 type SortDir = "asc" | "desc";
 
@@ -53,10 +54,12 @@ const PAGE_SIZE = 10;
 export function PostsTable({
   posts,
   categories,
+  authors,
   totalCount,
 }: {
   posts: PostRow[];
   categories: (ICategory & { _id: string })[];
+  authors: (IAuthor & { _id: string })[];
   totalCount: number;
 }) {
   const router = useRouter();
@@ -65,11 +68,15 @@ export function PostsTable({
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [drawerPost, setDrawerPost] = useState<PostRow | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<"publish" | "draft" | "delete" | null>(null);
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   // Read state from URL
   const search = searchParams.get("q") ?? "";
   const statusFilter = (searchParams.get("status") ?? "all") as "all" | "draft" | "published";
   const categoryFilter = searchParams.get("category") ?? "all";
+  const authorFilter = searchParams.get("author") ?? "all";
   const sortKey = (searchParams.get("sort") ?? "createdAt") as SortKey;
   const sortDir = (searchParams.get("dir") ?? "desc") as SortDir;
   const page = Number(searchParams.get("page") ?? "1");
@@ -81,6 +88,7 @@ export function PostsTable({
         if (v === "" || v === "all" || v === "1") params.delete(k);
         else params.set(k, v);
       });
+      setSelected(new Set());
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     },
     [router, pathname, searchParams],
@@ -100,9 +108,48 @@ export function PostsTable({
       : <ChevronDown width={12} height={12} className="inline ml-1" />;
   }
 
+  const allIds = posts.map((p) => p._id);
+  const allSelected = allIds.length > 0 && allIds.every((id) => selected.has(id));
+  const someSelected = selected.size > 0;
+
+  function toggleAll() {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(allIds));
+    }
+  }
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleBulkAction() {
+    if (!bulkAction || selected.size === 0) return;
+    setBulkLoading(true);
+    await fetch("/api/admin/posts/bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: Array.from(selected), action: bulkAction }),
+    });
+    setBulkLoading(false);
+    setBulkAction(null);
+    setSelected(new Set());
+    router.refresh();
+  }
+
   const selectedCategoryName = categoryFilter === "all"
     ? "All Categories"
     : categories.find((c) => c.slug === categoryFilter)?.name ?? "All Categories";
+
+  const selectedAuthorName = authorFilter === "all"
+    ? "All Authors"
+    : authors.find((a) => a.slug === authorFilter)?.name ?? "All Authors";
 
   function handleExport() {
     window.open("/api/admin/posts/export", "_blank");
@@ -158,12 +205,51 @@ export function PostsTable({
             </SelectContent>
           </Select>
         )}
+        {authors.length > 0 && (
+          <Select
+            value={authorFilter}
+            onValueChange={(val: string | null) => setParams({ author: val ?? "all", page: "1" })}
+          >
+            <SelectTrigger className="w-40">
+              <span className={authorFilter === "all" ? "text-muted-foreground" : ""}>
+                {selectedAuthorName}
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Authors</SelectItem>
+              {authors.map((a) => (
+                <SelectItem key={a._id} value={a.slug}>{a.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         </div>
         <Button variant="outline" size="sm" onClick={handleExport} className="flex items-center gap-2">
           <Download width={14} height={14} />
           Export CSV
         </Button>
       </div>
+
+      {/* Bulk action toolbar */}
+      {someSelected && (
+        <div className="flex items-center gap-3 px-3 py-2 bg-muted border border-border text-sm">
+          <span className="font-mono text-xs text-muted-foreground">{selected.size} selected</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button size="sm" variant="outline" onClick={() => setBulkAction("publish")}>
+              Publish
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setBulkAction("draft")}>
+              Set Draft
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => setBulkAction("delete")}>
+              Delete
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Mobile cards */}
       <div className="flex flex-col gap-3 md:hidden">
@@ -172,6 +258,12 @@ export function PostsTable({
         ) : (
           posts.map((post) => (
             <div key={post._id} className="border border-border p-4 flex items-start justify-between gap-4">
+              <Checkbox
+                checked={selected.has(post._id)}
+                onCheckedChange={() => toggleOne(post._id)}
+                className="mt-0.5 shrink-0"
+                aria-label="Select post"
+              />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{post.title}</p>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -210,10 +302,18 @@ export function PostsTable({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={toggleAll}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("title")}>
                 Title <SortIcon k="title" />
               </TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Author</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("views")}>
                 Views <SortIcon k="views" />
@@ -227,15 +327,42 @@ export function PostsTable({
           <TableBody>
             {posts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   No results.
                 </TableCell>
               </TableRow>
             ) : (
               posts.map((post) => (
-                <TableRow key={post._id}>
+                <TableRow key={post._id} data-selected={selected.has(post._id)}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(post._id)}
+                      onCheckedChange={() => toggleOne(post._id)}
+                      aria-label="Select post"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium max-w-[220px] truncate">{post.title}</TableCell>
                   <TableCell>{(post.category as ICategory)?.name ?? "—"}</TableCell>
+                  <TableCell>
+                    {post.author ? (
+                      <div className="flex items-center gap-2">
+                        {(post.author as IAuthor).avatar ? (
+                          <img
+                            src={(post.author as IAuthor).avatar}
+                            alt={(post.author as IAuthor).name}
+                            className="w-5 h-5 rounded-full object-cover shrink-0 border border-border"
+                          />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-muted shrink-0 flex items-center justify-center text-[10px] font-medium text-muted-foreground border border-border">
+                            {(post.author as IAuthor).name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="text-xs">{(post.author as IAuthor).name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <span className={`font-mono text-xs uppercase tracking-widest ${
                       post.status === "published" ? "text-foreground" : "text-muted-foreground"
@@ -336,6 +463,32 @@ export function PostsTable({
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Bulk Action Dialog */}
+      <Dialog open={!!bulkAction} onOpenChange={(open) => { if (!open) setBulkAction(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {bulkAction === "delete" ? "Delete Posts" : bulkAction === "publish" ? "Publish Posts" : "Set to Draft"}
+            </DialogTitle>
+            <DialogDescription>
+              {bulkAction === "delete"
+                ? `Permanently delete ${selected.size} post${selected.size !== 1 ? "s" : ""}? This cannot be undone.`
+                : `${bulkAction === "publish" ? "Publish" : "Set to draft"} ${selected.size} post${selected.size !== 1 ? "s" : ""}?`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkAction(null)}>Cancel</Button>
+            <Button
+              variant={bulkAction === "delete" ? "destructive" : "default"}
+              onClick={handleBulkAction}
+              disabled={bulkLoading}
+            >
+              {bulkLoading ? "Processing..." : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={!!deleteId} onOpenChange={(open: boolean) => { if (!open) setDeleteId(null); }}>
