@@ -20,6 +20,10 @@ import {
   Code2,
   Minus,
   Table,
+  Info,
+  AlertTriangle,
+  Lightbulb,
+  ShieldAlert,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -27,6 +31,7 @@ export interface CommandItem {
   title: string;
   description: string;
   Icon: LucideIcon;
+  iconColor?: string;
   command: (args: { editor: Editor; range: Range }) => void;
 }
 
@@ -113,6 +118,39 @@ export const SLASH_COMMANDS: CommandItem[] = [
     command: ({ editor, range }) =>
       editor.chain().focus().deleteRange(range).setHorizontalRule().run(),
   },
+  // Callouts
+  {
+    title: "Info",
+    description: "Blue info callout box",
+    Icon: Info,
+    iconColor: "text-blue-500",
+    command: ({ editor, range }) =>
+      editor.chain().focus().deleteRange(range).setCallout("info").run(),
+  },
+  {
+    title: "Warning",
+    description: "Yellow warning callout box",
+    Icon: AlertTriangle,
+    iconColor: "text-amber-500",
+    command: ({ editor, range }) =>
+      editor.chain().focus().deleteRange(range).setCallout("warning").run(),
+  },
+  {
+    title: "Tip",
+    description: "Green tip callout box",
+    Icon: Lightbulb,
+    iconColor: "text-emerald-500",
+    command: ({ editor, range }) =>
+      editor.chain().focus().deleteRange(range).setCallout("tip").run(),
+  },
+  {
+    title: "Danger",
+    description: "Red danger callout box",
+    Icon: ShieldAlert,
+    iconColor: "text-red-500",
+    command: ({ editor, range }) =>
+      editor.chain().focus().deleteRange(range).setCallout("danger").run(),
+  },
 ];
 
 // ── Slash Menu UI ─────────────────────────────────────────────────────────────
@@ -151,7 +189,7 @@ const SlashMenu = forwardRef<SlashMenuRef, SuggestionProps<CommandItem>>(
     if (!props.items.length) return null;
 
     return (
-      <div className="bg-background border border-border rounded-md shadow-xl p-1 w-64 max-h-72 overflow-y-auto">
+      <div className="bg-background border border-border rounded-md shadow-xl p-1 w-64 max-h-80 overflow-y-auto">
         <p className="px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
           Blocks
         </p>
@@ -164,7 +202,7 @@ const SlashMenu = forwardRef<SlashMenuRef, SuggestionProps<CommandItem>>(
             }`}
           >
             <span className="w-8 h-8 flex items-center justify-center shrink-0 border border-border rounded-sm bg-background">
-              <item.Icon className="w-4 h-4" />
+              <item.Icon className={`w-4 h-4 ${item.iconColor ?? ""}`} />
             </span>
             <div className="min-w-0">
               <p className="text-sm font-medium leading-none">{item.title}</p>

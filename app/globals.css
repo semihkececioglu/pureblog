@@ -247,6 +247,61 @@
   color: inherit;
 }
 
+/* Callout blocks */
+.ProseMirror [data-callout] {
+  border-left: 3px solid;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0 4px 4px 0;
+}
+.ProseMirror [data-callout][data-callout-type="info"] {
+  border-color: #3b82f6;
+  background-color: color-mix(in oklch, #3b82f6 8%, transparent);
+}
+.ProseMirror [data-callout][data-callout-type="warning"] {
+  border-color: #f59e0b;
+  background-color: color-mix(in oklch, #f59e0b 8%, transparent);
+}
+.ProseMirror [data-callout][data-callout-type="tip"] {
+  border-color: #10b981;
+  background-color: color-mix(in oklch, #10b981 8%, transparent);
+}
+.ProseMirror [data-callout][data-callout-type="danger"] {
+  border-color: #ef4444;
+  background-color: color-mix(in oklch, #ef4444 8%, transparent);
+}
+
+/* YouTube embed responsive */
+.ProseMirror div[data-youtube-video] {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+.ProseMirror div[data-youtube-video] iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+}
+.ProseMirror div[data-youtube-video].ProseMirror-selectednode {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Image selected state */
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Superscript / Subscript */
+.ProseMirror sup { font-size: 0.75em; }
+.ProseMirror sub { font-size: 0.75em; }
+
 /* Tippy slash menu — reset default tippy styles */
 [data-tippy-root] {
   max-width: none !important;
