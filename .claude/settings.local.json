@@ -12,7 +12,10 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm dlx:*)"
+      "Bash(pnpm dlx:*)",
+      "Bash(grep -r next/image c:/pureblog/app --include=*.tsx -l)",
+      "Bash(grep -r \"framer-motion\\\\|motion/react\" c:/pureblog/app --include=*.tsx -l)",
+      "Bash(ls \"c:/pureblog/app/\\(main\\)/bookmarks/\")"
     ]
   }
 }
