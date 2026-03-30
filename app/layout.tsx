@@ -61,10 +61,6 @@ export default function RootLayout({
       className={`${prata.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-      </head>
       <body className="min-h-screen flex flex-col">
         <Providers>{children}</Providers>
       </body>
