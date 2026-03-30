@@ -192,39 +192,87 @@
   text-decoration: line-through;
 }
 
-/* Tables */
+/* ── Tables ──────────────────────────────────────────────────────────────────── */
+.ProseMirror .tableWrapper {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  border-radius: 6px;
+  border: 1px solid color-mix(in oklch, var(--foreground) 18%, var(--background));
+}
 .ProseMirror table {
   border-collapse: collapse;
   table-layout: fixed;
   width: 100%;
-  overflow: hidden;
-  margin: 1rem 0;
+  margin: 0;
+  font-size: 0.9em;
 }
 .ProseMirror table td,
 .ProseMirror table th {
-  border: 1px solid var(--border);
-  padding: 0.4rem 0.6rem;
+  border: 1px solid color-mix(in oklch, var(--foreground) 18%, var(--background));
+  padding: 0.375rem 0.75rem;
   vertical-align: top;
   position: relative;
   min-width: 80px;
   box-sizing: border-box;
+  word-break: break-word;
+}
+/* Table cell density */
+.ProseMirror table[data-density="compact"] td,
+.ProseMirror table[data-density="compact"] th {
+  padding: 0.125rem 0.375rem;
+}
+.ProseMirror table[data-density="normal"] td,
+.ProseMirror table[data-density="normal"] th {
+  padding: 0.375rem 0.75rem;
+}
+.ProseMirror table[data-density="comfortable"] td,
+.ProseMirror table[data-density="comfortable"] th {
+  padding: 0.75rem 1rem;
 }
 .ProseMirror table th {
   font-weight: 600;
   background-color: var(--muted);
   text-align: left;
+  color: var(--foreground);
+  letter-spacing: 0.01em;
+  font-size: 0.8em;
+  text-transform: uppercase;
 }
+/* First column header */
+.ProseMirror table td:first-child,
+.ProseMirror table th:first-child {
+  border-left: none;
+}
+.ProseMirror table td:last-child,
+.ProseMirror table th:last-child {
+  border-right: none;
+}
+.ProseMirror table tr:first-child td,
+.ProseMirror table tr:first-child th {
+  border-top: none;
+}
+.ProseMirror table tr:last-child td,
+.ProseMirror table tr:last-child th {
+  border-bottom: none;
+}
+/* Zebra stripe on hover */
+.ProseMirror table tr:hover td {
+  background-color: color-mix(in oklch, var(--muted) 40%, transparent);
+}
+.ProseMirror table th:hover {
+  background-color: var(--muted);
+}
+/* Selected cells */
 .ProseMirror table .selectedCell::after {
-  background: color-mix(in oklch, var(--primary) 10%, transparent);
+  background: color-mix(in oklch, var(--primary) 15%, transparent);
   content: "";
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  left: 0; right: 0; top: 0; bottom: 0;
   pointer-events: none;
   position: absolute;
   z-index: 2;
+  border: 2px solid color-mix(in oklch, var(--primary) 60%, transparent);
 }
+/* Column resize handle */
 .ProseMirror table .column-resize-handle {
   background-color: var(--primary);
   bottom: -2px;
@@ -232,7 +280,28 @@
   position: absolute;
   right: -2px;
   top: 0;
-  width: 4px;
+  width: 3px;
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.ProseMirror table .column-resize-handle:hover {
+  opacity: 1;
+}
+/* Table resize cursor */
+.ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+/* Table caption */
+.ProseMirror p[data-table-caption] {
+  text-align: center;
+  font-size: 0.82em;
+  color: var(--muted-foreground);
+  font-style: italic;
+  margin-top: -0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px dashed var(--border);
 }
 
 /* Highlight */
@@ -315,4 +384,115 @@
 }
 .tippy-content {
   padding: 0 !important;
+}
+
+/* ── Vimeo embed ────────────────────────────────────────────────────────────── */
+.ProseMirror div[data-vimeo-video] {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+.ProseMirror div[data-vimeo-video] iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+}
+
+/* ── Details / Collapsible ───────────────────────────────────────────────────── */
+.ProseMirror details.tiptap-details {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+.ProseMirror details.tiptap-details > summary.tiptap-details-summary {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  background: var(--muted);
+  list-style: none;
+  user-select: none;
+}
+.ProseMirror details.tiptap-details > summary.tiptap-details-summary::-webkit-details-marker {
+  display: none;
+}
+.ProseMirror details.tiptap-details > summary.tiptap-details-summary::before {
+  content: "▶";
+  display: inline-block;
+  margin-right: 0.5rem;
+  font-size: 0.7em;
+  transition: transform 0.15s;
+}
+.ProseMirror details.tiptap-details[open] > summary.tiptap-details-summary::before {
+  transform: rotate(90deg);
+}
+.ProseMirror div[data-details-content].tiptap-details-content {
+  padding: 0.5rem 0.75rem;
+}
+
+/* ── Columns layout ─────────────────────────────────────────────────────────── */
+.ProseMirror div.tiptap-columns {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.ProseMirror div.tiptap-columns-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.ProseMirror div.tiptap-columns-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.ProseMirror div.tiptap-column {
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  min-height: 3rem;
+}
+
+/* ── Math equations ─────────────────────────────────────────────────────────── */
+.ProseMirror .math-inline-wrapper {
+  display: inline;
+}
+.ProseMirror .math-block-wrapper {
+  display: block;
+}
+.ProseMirror .math-inline {
+  font-family: KaTeX_Main, serif;
+}
+.ProseMirror .math-block {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+/* KaTeX CSS — loaded lazily but needs base styles */
+.katex { font-size: 1.1em; }
+.katex-display { display: block; text-align: center; margin: 0.5em 0; }
+
+/* ── Image resize NodeView ──────────────────────────────────────────────────── */
+.ProseMirror .image-resize-wrapper {
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* ── Mark highlight (multicolor) ────────────────────────────────────────────── */
+/* Override the default single-color mark rule to allow inline style colors */
+.ProseMirror mark[style] {
+  background-color: unset;
+}
+
+/* ── Bubble menu ────────────────────────────────────────────────────────────── */
+.tiptap-bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }

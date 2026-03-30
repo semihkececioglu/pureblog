@@ -105,6 +105,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
   return (
     <BubbleMenu
       editor={editor}
+      className="z-[150]"
       options={{
         placement: "top-start",
         offset: 8,
@@ -137,6 +138,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
               onMouseDown={(e) => { e.preventDefault(); setLinkEditMode(true); }}
               className="p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               title="Edit link"
+              aria-label="Edit link"
             >
               <Pencil className="w-3.5 h-3.5" />
             </button>
@@ -145,6 +147,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
               onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().unsetLink().run(); }}
               className="p-1.5 hover:bg-muted transition-colors text-muted-foreground hover:text-destructive"
               title="Remove link"
+              aria-label="Remove link"
             >
               <Unlink className="w-3.5 h-3.5" />
             </button>
@@ -157,6 +160,7 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
               onChange={(e) => setLinkValue(e.target.value)}
               placeholder="https://..."
               className="h-6 text-xs w-52"
+              aria-label="Link URL"
               onKeyDown={(e) => {
                 if (e.key === "Enter") { e.preventDefault(); applyLink(); }
                 if (e.key === "Escape") setLinkEditMode(false);
@@ -165,12 +169,14 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
             <button
               onMouseDown={(e) => { e.preventDefault(); applyLink(); }}
               className="text-xs px-2 py-1 bg-foreground text-background rounded shrink-0"
+              aria-label="Apply link"
             >
               Apply
             </button>
             <button
               onMouseDown={(e) => { e.preventDefault(); setLinkEditMode(false); }}
               className="text-xs p-1 hover:bg-muted rounded text-muted-foreground shrink-0"
+              aria-label="Cancel link edit"
             >
               ✕
             </button>
@@ -184,6 +190,8 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 type="button"
                 onMouseDown={(e) => { e.preventDefault(); action(); }}
                 title={label}
+                aria-label={label}
+                aria-pressed={active}
                 className={`p-1.5 transition-colors ${
                   active
                     ? "bg-muted text-foreground"
@@ -202,10 +210,26 @@ export function EditorBubbleMenu({ editor }: EditorBubbleMenuProps) {
                 setLinkEditMode(true);
               }}
               title="Add link"
+              aria-label="Add link"
               className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <Link className="w-3.5 h-3.5" />
             </button>
+            <div className="w-px bg-border" />
+            {/* Selection character count */}
+            <span
+              className="px-2 flex items-center text-[10px] text-muted-foreground font-mono tabular-nums select-none"
+              aria-live="polite"
+              aria-label="Selection character count"
+            >
+              {editor.state.selection.content().size > 0
+                ? `${editor.state.doc.textBetween(
+                    editor.state.selection.from,
+                    editor.state.selection.to,
+                    ""
+                  ).length} chars`
+                : ""}
+            </span>
           </>
         )}
       </div>

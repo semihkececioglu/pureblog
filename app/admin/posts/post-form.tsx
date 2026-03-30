@@ -412,7 +412,17 @@ export function PostForm({ categories, seriesList, existingTags, authors, initia
 
         {/* Content */}
         <FormSection title="Content">
-          <TiptapEditor content={content} onChange={setContent} />
+          <TiptapEditor
+            content={content}
+            onChange={setContent}
+            previewData={{
+              title: watch("title"),
+              excerpt: watch("excerpt"),
+              coverImage: watch("coverImage"),
+              categoryName: categories.find((c) => String(c._id) === watch("category"))?.name,
+              tags: watch("tags")?.split(",").map((t) => t.trim()).filter(Boolean),
+            }}
+          />
         </FormSection>
 
         {/* Taxonomy */}

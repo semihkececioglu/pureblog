@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Editor } from "@tiptap/core";
+import { Editor } from "@tiptap/react";
 import type { Mark } from "@tiptap/pm/model";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
