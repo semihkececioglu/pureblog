@@ -28,9 +28,11 @@ export function rateLimit(
 }
 
 export function getIP(req: Request): string {
+  // x-real-ip is set by infrastructure (Vercel) and cannot be spoofed by clients.
+  // x-forwarded-for can contain client-supplied values, so use it only as a fallback.
   return (
+    req.headers.get("x-real-ip")?.trim() ??
     req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
-    req.headers.get("x-real-ip") ??
     "unknown"
   );
 }

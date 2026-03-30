@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -10,7 +11,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
+        const ip = getIP(request as Request);
+        const rl = rateLimit(`login:${ip}`, 5, 15 * 60 * 1000);
+        if (!rl.success) return null;
+
         const email = credentials?.email as string;
         const password = credentials?.password as string;
 
