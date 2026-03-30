@@ -20,6 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description,
     openGraph: {
       siteName: name,
+      locale: "en_US",
+      type: "website",
       images: [{ url: ogImage, width: 1200, height: 630 }],
     },
     twitter: {
@@ -41,6 +43,12 @@ export default async function MainLayout({
 
   return (
     <CommandPaletteProvider>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:rounded-md focus:border focus:border-border"
+      >
+        Skip to main content
+      </a>
       {settings.googleAnalyticsId && (
         <>
           <Script
@@ -57,7 +65,7 @@ export default async function MainLayout({
         siteName={settings.siteName || "Pureblog"}
         categories={categories.map((c) => ({ ...c, _id: String(c._id) }))}
       />
-      <main className="flex-1">
+      <main className="flex-1" id="main-content">
         {children}
       </main>
       <ScrollBlur />

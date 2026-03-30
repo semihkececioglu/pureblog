@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Prata, DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { getCachedSettings } from "@/lib/cache";
@@ -8,19 +8,31 @@ const prata = Prata({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-lora",
+  display: "swap",
 });
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-dm-sans",
+  display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
+  display: "swap",
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pureblog.vercel.app";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getCachedSettings();
@@ -49,6 +61,10 @@ export default function RootLayout({
       className={`${prata.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+      </head>
       <body className="min-h-screen flex flex-col">
         <Providers>{children}</Providers>
       </body>

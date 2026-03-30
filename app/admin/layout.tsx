@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
@@ -5,6 +6,10 @@ import Comment from "@/models/Comment";
 import Message from "@/models/Message";
 import { AdminSidebarDesktop } from "./admin-sidebar";
 import { AdminHeader } from "./admin-header";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({
   children,

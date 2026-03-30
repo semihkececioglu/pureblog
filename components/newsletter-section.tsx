@@ -66,7 +66,11 @@ export function NewsletterSection() {
               onSubmit={handleSubmit}
               className="flex flex-col sm:flex-row gap-2"
             >
+              <label htmlFor="newsletter-email" className="sr-only">
+                Email address
+              </label>
               <Input
+                id="newsletter-email"
                 type="email"
                 placeholder="your@email.com"
                 value={email}
