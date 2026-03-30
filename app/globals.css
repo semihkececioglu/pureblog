@@ -42,6 +42,10 @@
   --font-sans: var(--font-dm-sans);
   --font-serif: var(--font-lora);
   --font-mono: var(--font-jetbrains-mono);
+
+  /* Component-specific theme colors (avoid JS resolvedTheme hydration mismatch) */
+  --logo-ray-color: rgba(140, 100, 50, 0.5);
+  --hero-ray-color: rgba(140, 100, 50, 0.3);
 }
 
 .dark {
@@ -76,6 +80,10 @@
   --sidebar-accent-foreground: oklch(0.936 0.004 96);
   --sidebar-border: oklch(0.21 0.004 96);
   --sidebar-ring: oklch(0.573 0.005 96);
+
+  /* Component-specific theme colors */
+  --logo-ray-color: rgba(200, 165, 110, 0.7);
+  --hero-ray-color: rgba(200, 165, 110, 0.5);
 }
 
 /* Scrollbar */

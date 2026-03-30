@@ -85,9 +85,7 @@ export function ThemeToggle() {
         >
           <ThemeIcon />
         </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {resolvedTheme === "dark" ? "Switch to light" : "Switch to dark"}
-        </TooltipContent>
+        <TooltipContent side="bottom">Toggle theme</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
