@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { LayoutPanelTopIcon } from "@/components/ui/layout-panel-top";
 import { FileTextIcon } from "@/components/ui/file-text";
 import { FolderOpenIcon } from "@/components/ui/folder-open";
+import { TagIcon } from "@/components/ui/tag";
 import { BookTextIcon } from "@/components/ui/book-text";
 import { MessageSquareIcon } from "@/components/ui/message-square";
 import { SendIcon } from "@/components/ui/send";
@@ -47,6 +48,11 @@ const navItems: { href: string; label: string; Icon: AnimatedIconComponent }[] =
       href: "/admin/categories",
       label: "Categories",
       Icon: FolderOpenIcon as AnimatedIconComponent,
+    },
+    {
+      href: "/admin/tags",
+      label: "Tags",
+      Icon: TagIcon as AnimatedIconComponent,
     },
     {
       href: "/admin/series",
