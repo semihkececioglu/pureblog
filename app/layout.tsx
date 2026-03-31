@@ -65,7 +65,7 @@ export default function RootLayout({
       className={`${prata.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
