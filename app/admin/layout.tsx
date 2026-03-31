@@ -27,12 +27,14 @@ export default async function AdminLayout({
   ]);
 
   return (
-    <div className="min-h-screen flex">
+    <div className="h-screen flex overflow-hidden">
       <AdminSidebarDesktop pendingComments={pendingComments} unreadMessages={unreadMessages} />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <AdminHeader userName={session.user?.name} pendingComments={pendingComments} unreadMessages={unreadMessages} />
-        <main className="flex-1 p-4 md:p-6 max-w-6xl w-full mx-auto">
-          {children}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="max-w-6xl w-full mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
