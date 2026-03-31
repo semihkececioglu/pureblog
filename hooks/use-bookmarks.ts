@@ -21,10 +21,17 @@ function readStore(): Bookmark[] {
 
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setBookmarks(readStore());
+    setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      setBookmarks(readStore());
+    }
+  }, [mounted]);
 
   const toggle = useCallback((slug: string, title: string) => {
     setBookmarks((prev) => {
