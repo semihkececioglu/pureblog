@@ -1,5 +1,7 @@
 # PureBlog
 
+<img src="./public/screenshots/cover.png" alt="PureBlog Cover" width="100%" />
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
@@ -16,6 +18,9 @@ A self-hosted, production-ready blogging platform with a full admin panel, rich 
 
 - [Overview](#overview)
 - [Screenshots](#screenshots)
+  - [Blog](#blog)
+  - [Admin Panel](#admin-panel-screenshots)
+  - [Performance](#performance)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [File Structure](#file-structure)
@@ -58,6 +63,8 @@ A self-hosted, production-ready blogging platform with a full admin panel, rich 
 
 PureBlog is a fully self-hosted blogging platform that gives you complete ownership over your content, readers, and data. It is designed around a single admin user model — no multi-tenant complexity, no third-party CMS dependency, no external content API. Everything from post creation to newsletter delivery runs within the same Next.js application.
 
+The design philosophy behind PureBlog is clarity and restraint. The reader-facing interface is intentionally minimal: no sidebars cluttered with widgets, no aggressive popups, no visual noise. Typography is the primary medium. Every page is stripped back to what the content actually needs — a clean reading surface, generous whitespace, and a neutral palette that keeps the reader focused on the writing. The name reflects this directly: pure, uncluttered, honest.
+
 The platform is built with the Next.js App Router, server components, and ISR caching, making it fast by default. The admin panel covers the full content lifecycle: write with a feature-complete rich text editor, organize with categories, tags, and series, moderate comments, manage subscribers, and configure the entire site appearance from a single settings page. Reader-facing features include full-text search, bookmarks, reactions, comment threads, series navigation, and an RSS feed.
 
 ---
@@ -65,6 +72,8 @@ The platform is built with the Next.js App Router, server components, and ISR ca
 ## Screenshots
 
 > Place screenshot files in `./public/screenshots/` to display them here.
+
+### Blog
 
 <table>
   <tr>
@@ -83,28 +92,80 @@ The platform is built with the Next.js App Router, server components, and ISR ca
       <br /><strong>Blog Post</strong>
     </td>
     <td align="center">
-      <img src="./public/screenshots/admin-dashboard.png" alt="Admin Dashboard" width="100%" />
-      <br /><strong>Admin Dashboard</strong>
+      <img src="./public/screenshots/mobile.png" alt="Mobile View" width="100%" />
+      <br /><strong>Mobile View</strong>
+    </td>
+  </tr>
+</table>
+
+### Admin Panel Screenshots
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./public/screenshots/admin-dashboard.png" alt="Dashboard" width="100%" />
+      <br /><strong>Dashboard</strong>
+    </td>
+    <td align="center">
+      <img src="./public/screenshots/admin-posts.png" alt="Posts" width="100%" />
+      <br /><strong>Posts</strong>
     </td>
   </tr>
   <tr>
-    <td align="center">
-      <img src="./public/screenshots/admin-posts.png" alt="Posts Management" width="100%" />
-      <br /><strong>Posts Management</strong>
-    </td>
     <td align="center">
       <img src="./public/screenshots/admin-editor.png" alt="Rich Text Editor" width="100%" />
       <br /><strong>Rich Text Editor</strong>
     </td>
+    <td align="center">
+      <img src="./public/screenshots/admin-authors.png" alt="Authors" width="100%" />
+      <br /><strong>Authors</strong>
+    </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="./public/screenshots/admin-settings.png" alt="Site Settings" width="100%" />
-      <br /><strong>Site Settings</strong>
+      <img src="./public/screenshots/admin-categories.png" alt="Categories" width="100%" />
+      <br /><strong>Categories</strong>
     </td>
     <td align="center">
-      <img src="./public/screenshots/mobile.png" alt="Mobile View" width="100%" />
-      <br /><strong>Mobile View</strong>
+      <img src="./public/screenshots/admin-tags.png" alt="Tags" width="100%" />
+      <br /><strong>Tags</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./public/screenshots/admin-series.png" alt="Series" width="100%" />
+      <br /><strong>Series</strong>
+    </td>
+    <td align="center">
+      <img src="./public/screenshots/admin-comments.png" alt="Comments" width="100%" />
+      <br /><strong>Comments</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="./public/screenshots/admin-messages.png" alt="Messages" width="100%" />
+      <br /><strong>Messages</strong>
+    </td>
+    <td align="center">
+      <img src="./public/screenshots/admin-subscribers.png" alt="Subscribers" width="100%" />
+      <br /><strong>Subscribers</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <img src="./public/screenshots/admin-settings.png" alt="Settings" width="50%" />
+      <br /><strong>Settings</strong>
+    </td>
+  </tr>
+</table>
+
+### Performance
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./public/screenshots/pagespeed.png" alt="PageSpeed Insights" width="100%" />
+      <br /><strong>PageSpeed Insights</strong>
     </td>
   </tr>
 </table>
