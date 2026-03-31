@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "./editor.css";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
