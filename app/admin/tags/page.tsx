@@ -4,10 +4,11 @@ import { Suspense } from "react";
 import { connectDB } from "@/lib/db";
 import Post from "@/models/Post";
 import { TagList } from "./tag-list";
+import type { PipelineStage } from "mongoose";
 
 async function getTagsWithCount(q?: string) {
   await connectDB();
-  const pipeline: object[] = [
+  const pipeline: PipelineStage[] = [
     { $unwind: "$tags" },
     { $group: { _id: "$tags", count: { $sum: 1 } } },
     { $sort: { count: -1, _id: 1 } },
