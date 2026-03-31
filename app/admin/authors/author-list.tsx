@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,7 +31,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Trash2, Pencil, MoreHorizontal, Plus, ImageIcon, X } from "lucide-react";
+import { Trash2, Pencil, MoreHorizontal, Plus, ImageIcon, X, Search } from "lucide-react";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -65,6 +65,26 @@ export function AuthorList({ initialAuthors }: AuthorListProps) {
   const [formSheet, setFormSheet] = useState<"add" | "edit" | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setAuthors(initialAuthors);
+  }, [initialAuthors]);
+
+  const urlSearchParams = useSearchParams();
+  const pathname = usePathname();
+  const search = urlSearchParams.get("q") ?? "";
+
+  const setParams = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      Object.entries(updates).forEach(([k, v]) => {
+        if (v === "") params.delete(k);
+        else params.set(k, v);
+      });
+      router.replace(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, urlSearchParams],
+  );
 
   const {
     register,
@@ -280,7 +300,9 @@ export function AuthorList({ initialAuthors }: AuthorListProps) {
   const authorListItems = (
     <div className="flex flex-col gap-2">
       {authors.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No authors yet.</p>
+        <p className="text-sm text-muted-foreground">
+          {search ? "No authors match your search." : "No authors yet."}
+        </p>
       ) : (
         authors.map((item) => (
           <div
@@ -371,6 +393,15 @@ export function AuthorList({ initialAuthors }: AuthorListProps) {
             Add Author
           </Button>
         </div>
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" width={14} height={14} />
+          <Input
+            placeholder="Search authors..."
+            defaultValue={search}
+            onChange={(e) => setParams({ q: e.target.value })}
+            className="pl-8"
+          />
+        </div>
         {authorListItems}
       </div>
 
@@ -378,6 +409,15 @@ export function AuthorList({ initialAuthors }: AuthorListProps) {
       <div className="hidden md:grid grid-cols-2 gap-8">
         <div>
           <h2 className="font-serif text-xl font-bold mb-4">All Authors</h2>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" width={14} height={14} />
+            <Input
+              placeholder="Search authors..."
+              defaultValue={search}
+              onChange={(e) => setParams({ q: e.target.value })}
+              className="pl-8"
+            />
+          </div>
           {authorListItems}
         </div>
         <div>

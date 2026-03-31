@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,7 +29,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Trash2, Pencil, MoreHorizontal, Tag } from "lucide-react";
+import { Trash2, Pencil, MoreHorizontal, Tag, Search } from "lucide-react";
 import { toast } from "sonner";
 
 const renameSchema = z.object({
@@ -51,6 +51,26 @@ export function TagList({ initialTags }: TagListProps) {
   const [deleting, setDeleting] = useState(false);
   const [drawerTag, setDrawerTag] = useState<TagItem | null>(null);
   const [formSheet, setFormSheet] = useState(false);
+
+  useEffect(() => {
+    setTags(initialTags);
+  }, [initialTags]);
+
+  const urlSearchParams = useSearchParams();
+  const pathname = usePathname();
+  const search = urlSearchParams.get("q") ?? "";
+
+  const setParams = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      Object.entries(updates).forEach(([k, v]) => {
+        if (v === "") params.delete(k);
+        else params.set(k, v);
+      });
+      router.replace(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, urlSearchParams],
+  );
 
   const {
     register,
@@ -136,7 +156,9 @@ export function TagList({ initialTags }: TagListProps) {
   const tagListItems = (
     <div className="flex flex-col gap-2">
       {tags.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No tags yet. Add tags to your posts to see them here.</p>
+        <p className="text-sm text-muted-foreground">
+          {search ? "No tags match your search." : "No tags yet. Add tags to your posts to see them here."}
+        </p>
       ) : (
         tags.map((tag) => (
           <div
@@ -203,6 +225,15 @@ export function TagList({ initialTags }: TagListProps) {
     <>
       {/* Mobile layout */}
       <div className="md:hidden">
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" width={14} height={14} />
+          <Input
+            placeholder="Search tags..."
+            defaultValue={search}
+            onChange={(e) => setParams({ q: e.target.value })}
+            className="pl-8"
+          />
+        </div>
         {tagListItems}
       </div>
 
@@ -215,6 +246,15 @@ export function TagList({ initialTags }: TagListProps) {
               ({tags.length})
             </span>
           </h2>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" width={14} height={14} />
+            <Input
+              placeholder="Search tags..."
+              defaultValue={search}
+              onChange={(e) => setParams({ q: e.target.value })}
+              className="pl-8"
+            />
+          </div>
           {tagListItems}
         </div>
         <div>

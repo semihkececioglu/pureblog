@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -30,7 +30,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Trash2, Pencil, MoreHorizontal, Plus, ListOrdered } from "lucide-react";
+import { Trash2, Pencil, MoreHorizontal, Plus, ListOrdered, Search } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -55,6 +55,26 @@ export function SeriesList({ initialSeries }: SeriesListProps) {
   const [deleting, setDeleting] = useState(false);
   const [drawerItem, setDrawerItem] = useState<SeriesItem | null>(null);
   const [formSheet, setFormSheet] = useState<"add" | "edit" | null>(null);
+
+  useEffect(() => {
+    setSeries(initialSeries);
+  }, [initialSeries]);
+
+  const urlSearchParams = useSearchParams();
+  const pathname = usePathname();
+  const search = urlSearchParams.get("q") ?? "";
+
+  const setParams = useCallback(
+    (updates: Record<string, string>) => {
+      const params = new URLSearchParams(urlSearchParams.toString());
+      Object.entries(updates).forEach(([k, v]) => {
+        if (v === "") params.delete(k);
+        else params.set(k, v);
+      });
+      router.replace(`${pathname}?${params.toString()}`);
+    },
+    [pathname, router, urlSearchParams],
+  );
 
   const {
     register,
@@ -171,7 +191,9 @@ export function SeriesList({ initialSeries }: SeriesListProps) {
   const seriesListItems = (
     <div className="flex flex-col gap-2">
       {series.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No series yet.</p>
+        <p className="text-sm text-muted-foreground">
+          {search ? "No series match your search." : "No series yet."}
+        </p>
       ) : (
         series.map((item) => (
           <div
@@ -243,6 +265,15 @@ export function SeriesList({ initialSeries }: SeriesListProps) {
             Add Series
           </Button>
         </div>
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" width={14} height={14} />
+          <Input
+            placeholder="Search series..."
+            defaultValue={search}
+            onChange={(e) => setParams({ q: e.target.value })}
+            className="pl-8"
+          />
+        </div>
         {seriesListItems}
       </div>
 
@@ -250,6 +281,15 @@ export function SeriesList({ initialSeries }: SeriesListProps) {
       <div className="hidden md:grid grid-cols-2 gap-8">
         <div>
           <h2 className="font-serif text-xl font-bold mb-4">All Series</h2>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" width={14} height={14} />
+            <Input
+              placeholder="Search series..."
+              defaultValue={search}
+              onChange={(e) => setParams({ q: e.target.value })}
+              className="pl-8"
+            />
+          </div>
           {seriesListItems}
         </div>
         <div>
