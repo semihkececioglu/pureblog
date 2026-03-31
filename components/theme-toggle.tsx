@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useSound } from "@/hooks/use-sound";
 import { switch005Sound } from "@/lib/switch-005";
@@ -56,9 +57,22 @@ function ThemeIcon() {
 }
 
 export function ThemeToggle() {
+  const [mounted, setMounted] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
   const [playOn] = useSound(switch005Sound, { volume: 0.5 });
   const [playOff] = useSound(switch006Sound, { volume: 0.5 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" aria-label="Toggle theme" disabled>
+        <ThemeIcon />
+      </Button>
+    );
+  }
 
   const toggle = () => {
     if (resolvedTheme === "dark") {
