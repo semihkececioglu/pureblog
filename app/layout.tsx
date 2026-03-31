@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Prata, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { preconnect, prefetchDNS } from "react-dom";
 import { Providers } from "@/components/providers";
 import { getCachedSettings } from "@/lib/cache";
 import "./globals.css";
@@ -55,16 +56,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  preconnect("https://res.cloudinary.com");
+  prefetchDNS("https://res.cloudinary.com");
+
   return (
     <html
       lang="en"
       className={`${prata.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-      </head>
       <body className="min-h-screen flex flex-col">
         <Providers>{children}</Providers>
       </body>
