@@ -1,6 +1,13 @@
+"use client";
+
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
+import dynamic from "next/dynamic";
 import NextTopLoader from "nextjs-toploader";
+
+const Toaster = dynamic(
+  () => import("@/components/ui/sonner").then((m) => ({ default: m.Toaster })),
+  { ssr: false }
+);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
