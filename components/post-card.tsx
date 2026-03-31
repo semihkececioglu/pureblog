@@ -58,6 +58,7 @@ export function FeaturedPostCard({ post }: PostCardProps) {
             src={post.coverImage}
             alt={post.title}
             fill
+            priority
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 768px"
           />
